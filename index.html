@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Ocean Arena - 海底竞速与答题挑战 (试玩原型版)</title>
+  <title>Ocean Adventure - 海底竞速与道具对战</title>
   <style>
     * {
       box-sizing: border-box;
@@ -13,7 +13,7 @@
       -webkit-user-select: none;
     }
     body {
-      background: #051026;
+      background: #030d22;
       color: #fff;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
       overflow: hidden;
@@ -27,20 +27,21 @@
       position: relative;
       width: 100vw;
       max-width: 1024px;
-      height: 576px; /* 16:9 */
-      max-height: 90vh;
-      background: #020b18;
-      box-shadow: 0 10px 40px rgba(0, 180, 255, 0.25);
-      border-radius: 12px;
+      height: 576px; /* 16:9 比例 */
+      max-height: 92vh;
+      background: #020917;
+      box-shadow: 0 12px 45px rgba(0, 180, 255, 0.28);
+      border-radius: 14px;
       overflow: hidden;
-      border: 2px solid rgba(0, 200, 255, 0.3);
+      border: 2px solid rgba(0, 210, 255, 0.35);
     }
     canvas {
       width: 100%;
       height: 100%;
       display: block;
     }
-    /* Top HUD */
+
+    /* 顶部 HUD */
     #hud {
       position: absolute;
       top: 12px;
@@ -53,91 +54,274 @@
       z-index: 10;
     }
     .hud-card {
-      background: rgba(4, 25, 54, 0.75);
+      background: rgba(3, 20, 48, 0.82);
       backdrop-filter: blur(8px);
       border: 1px solid rgba(0, 220, 255, 0.3);
       border-radius: 20px;
-      padding: 6px 16px;
+      padding: 6px 14px;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       font-size: 14px;
       font-weight: bold;
       color: #e0f7ff;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
     }
-    .energy-bar-container {
-      width: 140px;
+    .energy-bar-wrap {
+      width: 120px;
       height: 12px;
       background: rgba(255, 255, 255, 0.15);
       border-radius: 6px;
       overflow: hidden;
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.25);
     }
     #energy-bar-fill {
       height: 100%;
       width: 100%;
       background: linear-gradient(90deg, #00f2fe, #4facfe);
-      transition: width 0.15s ease, background 0.3s;
+      transition: width 0.15s ease;
     }
-    /* Modal Quiz */
+
+    /* 特殊状态浮窗标签（金身 / 定身） */
+    #status-banner {
+      position: absolute;
+      top: 58px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 6px 20px;
+      border-radius: 25px;
+      font-weight: 900;
+      font-size: 15px;
+      display: none;
+      z-index: 15;
+      letter-spacing: 1px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.6);
+      pointer-events: none;
+    }
+    .status-golden {
+      background: linear-gradient(90deg, #f59e0b, #fbbf24);
+      color: #78350f;
+      border: 2px solid #fef08a;
+      box-shadow: 0 0 25px #fbbf24 !important;
+      display: block !important;
+      animation: pulseGold 0.6s infinite alternate;
+    }
+    @keyframes pulseGold {
+      from { transform: translateX(-50%) scale(1); }
+      to { transform: translateX(-50%) scale(1.06); }
+    }
+    .status-stunned {
+      background: rgba(220, 38, 38, 0.9);
+      color: #fff;
+      border: 2px solid #f87171;
+      display: block !important;
+      animation: shakeStun 0.3s infinite;
+    }
+    @keyframes shakeStun {
+      0% { transform: translateX(-50%) rotate(0deg); }
+      25% { transform: translateX(-52%) rotate(-1deg); }
+      75% { transform: translateX(-48%) rotate(1deg); }
+      100% { transform: translateX(-50%) rotate(0deg); }
+    }
+
+    /* 底部控制器（完全还原用户手绘稿布局） */
+    #controls-layout {
+      position: absolute;
+      bottom: 14px;
+      left: 18px;
+      right: 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      pointer-events: none;
+      z-index: 12;
+    }
+
+    /* 左下角方向与加速 */
+    .left-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      pointer-events: auto;
+    }
+    .dir-column {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .btn-sketch-sq {
+      width: 48px;
+      height: 48px;
+      background: rgba(8, 36, 76, 0.75);
+      border: 2px solid #38bdf8;
+      border-radius: 10px;
+      color: #38bdf8;
+      font-size: 20px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      backdrop-filter: blur(5px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+      transition: all 0.1s;
+    }
+    .btn-sketch-sq:active {
+      background: #38bdf8;
+      color: #04122c;
+      transform: scale(0.92);
+    }
+    .btn-dash {
+      width: 54px;
+      height: 54px;
+      background: rgba(14, 165, 233, 0.25);
+      border: 2px solid #00f2fe;
+      border-radius: 12px;
+      color: #00f2fe;
+      font-size: 22px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      backdrop-filter: blur(5px);
+      transition: all 0.1s;
+    }
+    .btn-dash:active {
+      background: #00f2fe;
+      color: #020917;
+      transform: scale(0.92);
+    }
+
+    /* 右下角：方形道具格 + 红色“丢”按钮 */
+    .right-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      pointer-events: auto;
+    }
+    .item-slot {
+      width: 58px;
+      height: 58px;
+      background: rgba(3, 20, 50, 0.85);
+      border: 2.5px solid #f59e0b;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
+      position: relative;
+    }
+    .slot-label {
+      position: absolute;
+      top: -8px;
+      background: #f59e0b;
+      color: #000;
+      font-size: 10px;
+      font-weight: bold;
+      padding: 1px 6px;
+      border-radius: 8px;
+    }
+    #slot-icon {
+      font-size: 28px;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
+    }
+    .btn-throw {
+      width: 58px;
+      height: 58px;
+      background: rgba(220, 38, 38, 0.25);
+      border: 2.5px solid #ef4444;
+      border-radius: 12px;
+      color: #ef4444;
+      font-size: 22px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      backdrop-filter: blur(5px);
+      box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+      transition: all 0.15s;
+    }
+    .btn-throw:active {
+      background: #ef4444;
+      color: #fff;
+      transform: scale(0.92);
+    }
+    .btn-throw.disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      border-color: #64748b;
+      color: #64748b;
+      box-shadow: none;
+    }
+
+    /* 弹窗限时答题 (Quiz Modal) */
     #quiz-modal {
       position: absolute;
       inset: 0;
-      background: rgba(2, 10, 25, 0.88);
-      backdrop-filter: blur(10px);
+      background: rgba(2, 8, 22, 0.9);
+      backdrop-filter: blur(12px);
       display: none;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       z-index: 50;
       padding: 20px;
-      animation: fadeIn 0.25s ease-out;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: scale(0.96); }
-      to { opacity: 1; transform: scale(1); }
     }
     .quiz-box {
       width: 100%;
-      max-width: 580px;
-      background: linear-gradient(145deg, #0b2246, #06152e);
-      border: 2px solid #00d2ff;
-      border-radius: 16px;
-      padding: 24px;
-      box-shadow: 0 0 35px rgba(0, 210, 255, 0.35);
+      max-width: 600px;
+      background: linear-gradient(145deg, #092248, #05142d);
+      border: 2px solid #00e5ff;
+      border-radius: 18px;
+      padding: 26px;
+      box-shadow: 0 0 40px rgba(0, 229, 255, 0.35);
       text-align: center;
+      position: relative;
     }
-    .quiz-tag {
+    .timer-ring {
+      position: absolute;
+      top: 16px;
+      right: 20px;
+      background: rgba(239, 68, 68, 0.25);
+      border: 1.5px solid #f87171;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-weight: 800;
+      color: #fca5a5;
+      font-size: 13px;
+    }
+    .quiz-header-badge {
       display: inline-block;
-      background: rgba(0, 210, 255, 0.2);
-      color: #00e1ff;
-      padding: 4px 12px;
+      background: rgba(0, 229, 255, 0.2);
+      color: #38bdf8;
+      padding: 4px 14px;
       border-radius: 12px;
       font-size: 13px;
-      font-weight: 600;
-      margin-bottom: 12px;
-      border: 1px solid rgba(0, 210, 255, 0.4);
-    }
-    .quiz-question {
-      font-size: 20px;
       font-weight: bold;
-      line-height: 1.4;
-      margin-bottom: 20px;
-      color: #ffffff;
+      margin-bottom: 12px;
     }
-    .quiz-options {
+    .quiz-question-text {
+      font-size: 19px;
+      font-weight: bold;
+      line-height: 1.45;
+      margin-bottom: 22px;
+      color: #f8fafc;
+    }
+    .quiz-options-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 12px;
     }
     @media (max-width: 600px) {
-      .quiz-options { grid-template-columns: 1fr; }
+      .quiz-options-grid { grid-template-columns: 1fr; }
     }
-    .opt-btn {
+    .quiz-opt-btn {
       background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(0, 210, 255, 0.3);
-      color: #e6f7ff;
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      color: #e2e8f0;
       padding: 12px 16px;
       border-radius: 10px;
       font-size: 15px;
@@ -145,126 +329,86 @@
       text-align: left;
       transition: all 0.15s;
     }
-    .opt-btn:hover {
-      background: rgba(0, 210, 255, 0.25);
-      border-color: #00f2fe;
-      transform: translateY(-2px);
+    .quiz-opt-btn:hover {
+      background: rgba(56, 189, 248, 0.25);
+      border-color: #38bdf8;
     }
-    .opt-btn.correct {
+    .quiz-opt-btn.correct {
       background: #10b981 !important;
       border-color: #34d399 !important;
       color: #fff !important;
     }
-    .opt-btn.wrong {
+    .quiz-opt-btn.wrong {
       background: #ef4444 !important;
       border-color: #f87171 !important;
       color: #fff !important;
     }
-    /* Boss Overlay */
-    #boss-banner {
-      position: absolute;
-      top: 80px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(220, 38, 38, 0.85);
-      border: 2px solid #f87171;
-      padding: 8px 24px;
-      border-radius: 30px;
-      color: #fff;
-      font-size: 18px;
-      font-weight: 800;
-      display: none;
-      letter-spacing: 2px;
-      animation: pulseAlert 0.8s infinite alternate;
-      z-index: 15;
-    }
-    @keyframes pulseAlert {
-      from { transform: translateX(-50%) scale(1); box-shadow: 0 0 10px rgba(239,68,68,0.5); }
-      to { transform: translateX(-50%) scale(1.05); box-shadow: 0 0 25px rgba(239,68,68,0.9); }
-    }
-    /* Controls Hint / Mobile Controls */
-    #controls-bar {
-      position: absolute;
-      bottom: 12px;
-      left: 16px;
-      right: 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      pointer-events: none;
-      z-index: 12;
-    }
-    .guide-text {
-      background: rgba(4, 25, 54, 0.7);
-      padding: 6px 14px;
-      border-radius: 12px;
-      font-size: 12px;
-      color: #94a3b8;
-      border: 1px solid rgba(255,255,255,0.1);
-    }
-    .touch-btn-group {
-      display: flex;
-      gap: 10px;
-      pointer-events: auto;
-    }
-    .touch-btn {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      background: rgba(0, 180, 255, 0.25);
-      border: 2px solid rgba(0, 210, 255, 0.5);
-      color: #fff;
-      font-size: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      backdrop-filter: blur(6px);
-      user-select: none;
-    }
-    .touch-btn:active {
-      background: rgba(0, 210, 255, 0.6);
-      transform: scale(0.92);
-    }
-    /* Start / Pause Screen */
+
+    /* 启动界面与结束界面 */
     #start-screen, #game-over-screen {
       position: absolute;
       inset: 0;
-      background: rgba(3, 15, 38, 0.92);
+      background: rgba(2, 9, 24, 0.94);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       z-index: 40;
-      gap: 16px;
+      gap: 14px;
       text-align: center;
-      padding: 20px;
+      padding: 24px;
     }
-    .main-btn {
+    .start-title {
+      font-size: 32px;
+      font-weight: 900;
+      background: linear-gradient(90deg, #38bdf8, #818cf8, #fbbf24);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .start-rules {
+      max-width: 580px;
+      background: rgba(8, 28, 64, 0.7);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 12px;
+      padding: 12px 20px;
+      text-align: left;
+      font-size: 13px;
+      line-height: 1.65;
+      color: #cbd5e1;
+    }
+    .start-rules b { color: #facc15; }
+    .btn-main {
       background: linear-gradient(135deg, #00f2fe, #4facfe);
       border: none;
-      color: #031528;
+      color: #020917;
       font-size: 18px;
       font-weight: 800;
-      padding: 14px 36px;
+      padding: 12px 40px;
       border-radius: 30px;
       cursor: pointer;
-      box-shadow: 0 4px 20px rgba(0, 242, 254, 0.5);
+      box-shadow: 0 4px 20px rgba(0, 242, 254, 0.4);
       transition: all 0.2s;
     }
-    .main-btn:hover {
+    .btn-main:hover {
       transform: scale(1.05);
-      box-shadow: 0 6px 28px rgba(0, 242, 254, 0.7);
+      box-shadow: 0 6px 28px rgba(0, 242, 254, 0.6);
     }
-    .asset-notice {
-      font-size: 13px;
-      color: #38bdf8;
-      background: rgba(56, 189, 248, 0.1);
-      padding: 8px 16px;
-      border-radius: 8px;
-      border: 1px dashed rgba(56, 189, 248, 0.4);
-      max-width: 520px;
-      line-height: 1.5;
+    /* 攻击横幅通知 */
+    #attack-banner {
+      position: absolute;
+      top: 96px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(168, 85, 247, 0.9);
+      border: 2px solid #c084fc;
+      padding: 6px 20px;
+      border-radius: 20px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: bold;
+      display: none;
+      z-index: 20;
+      box-shadow: 0 0 25px rgba(168, 85, 247, 0.7);
     }
   </style>
 </head>
@@ -273,7 +417,7 @@
   <div id="game-container">
     <canvas id="gameCanvas" width="960" height="540"></canvas>
 
-    <!-- Top HUD -->
+    <!-- 顶部 HUD -->
     <div id="hud">
       <div class="hud-card">
         <span>🏊 距离:</span>
@@ -281,7 +425,7 @@
       </div>
       <div class="hud-card">
         <span>⚡ 能量:</span>
-        <div class="energy-bar-container">
+        <div class="energy-bar-wrap">
           <div id="energy-bar-fill"></div>
         </div>
         <span id="energy-val" style="min-width:38px;">100%</span>
@@ -292,284 +436,286 @@
       </div>
     </div>
 
-    <!-- Boss Warning Banner -->
-    <div id="boss-banner">⚠️ 150m BOSS CHALLENGE: 深海巨怪来袭！</div>
+    <!-- 状态横幅：金身 5s / 定身 3s -->
+    <div id="status-banner"></div>
 
-    <!-- Controls & Tips -->
-    <div id="controls-bar">
-      <div class="guide-text">
-        🎮 操作: <b>↑ / ↓</b> 或 <b>W / S</b> 游动 · <b>空格</b> 冲刺 · 碰垃圾答题 · 150m 决战 Boss
+    <!-- 攻击通知横幅 -->
+    <div id="attack-banner">🎯 命中附近 5 名玩家！他们已被强制答题！</div>
+
+    <!-- 底部手绘对应操作按键 -->
+    <div id="controls-layout">
+      <!-- 左下角：上下 + 冲刺 >> -->
+      <div class="left-controls">
+        <div class="dir-column">
+          <div class="btn-sketch-sq" id="btn-up">▲</div>
+          <div class="btn-sketch-sq" id="btn-down">▼</div>
+        </div>
+        <div class="btn-dash" id="btn-dash">&gt;&gt;</div>
       </div>
-      <div class="touch-btn-group">
-        <div class="touch-btn" id="btn-up">▲</div>
-        <div class="touch-btn" id="btn-down">▼</div>
-        <div class="touch-btn" id="btn-dash">⚡</div>
+
+      <!-- 右下角：方形道具槽 + 红色【丢】按钮 -->
+      <div class="right-controls">
+        <div class="item-slot">
+          <span class="slot-label">道具槽</span>
+          <div id="slot-icon">∅</div>
+        </div>
+        <div class="btn-throw disabled" id="btn-throw">丢</div>
       </div>
     </div>
 
-    <!-- Question Modal -->
+    <!-- 限时答题弹窗 -->
     <div id="quiz-modal">
       <div class="quiz-box">
-        <div class="quiz-tag" id="quiz-badge">🚨 撞到塑料垃圾！答题脱困</div>
-        <div class="quiz-question" id="quiz-q">题目加载中...</div>
-        <div class="quiz-options" id="quiz-opts"></div>
+        <div class="timer-ring" id="quiz-timer">⏱️ 倒计时: 10s</div>
+        <div class="quiz-header-badge" id="quiz-badge">🚨 撞到塑料袋！强制限时答题</div>
+        <div class="quiz-question-text" id="quiz-q">题目加载中...</div>
+        <div class="quiz-options-grid" id="quiz-opts"></div>
       </div>
     </div>
 
-    <!-- Start Screen -->
+    <!-- 启动说明界面 -->
     <div id="start-screen">
-      <h1 style="font-size:32px; font-weight:900; background:linear-gradient(90deg, #38bdf8, #818cf8); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
-        🌊 Ocean Arena: 海底竞速与答题原型
-      </h1>
-      <p style="color:#cbd5e1; max-width:540px; font-size:14px; line-height:1.6;">
-        控制角色在深海中竞速，管理持续消耗的能量，收集光芒能量球（约每10m补给）；<br>
-        撞上塑料垃圾障碍将触发问答事件；达到 <b>150m</b> 将迎战首领挑战！
-      </p>
-      <div class="asset-notice">
-        💡 <b>素材模块化提示</b>：当前版本使用纯 Canvas 矢量与程序化渲染占位符。代码顶部已预留 <code>ASSET_CONFIG</code> 对象与题库接口，后续可直接将图片/音效文件 URL 替换接入。
+      <h1 class="start-title">🌊 Ocean Adventure: 海底大冒险</h1>
+      <div class="start-rules">
+        <b>📝 核心规则（根据手稿设计）</b>：<br>
+        1. <b>游 10m 需补充一次 energy</b>：每 10 米散落发光能量球，耗尽则无法前行。<br>
+        2. <b>撞到塑料袋（Plastic Bag）强制答题（限时 10 秒）</b>：<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;• 答对：<b>开启金身（金色无敌护盾）+ 极速加速（持续 5 秒）</b>！<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;• 答错/超时：<b>惩罚 Penalty（3 秒不能动）</b>！<br>
+        3. <b>贝壳 🐚 与 大便 💩 攻击道具</b>：在海床拾取放入槽中，点击<b>【丢】</b>按钮攻击附近的 5 名竞争玩家，画面触发专属特效并强制他们回答一题！<br>
+        4. <b>每 150m 遭遇大 Boss</b>：答对 3 道题即可击倒大 Boss 并获取巨额积分！<br>
+        5. <b>海龟 🐢 是硬性障碍物</b>：撞上会被硬性阻挡无法前行，必须上下绕道！
       </div>
-      <button class="main-btn" id="btn-start">开始竞速</button>
+      <button class="btn-main" id="btn-start">开始探索</button>
     </div>
 
-    <!-- Game Over Screen -->
+    <!-- 结算界面 -->
     <div id="game-over-screen" style="display:none;">
-      <h2 id="over-title" style="font-size:30px; font-weight:800; color:#f87171;">能量耗尽</h2>
-      <p id="over-desc" style="color:#cbd5e1; font-size:15px; margin: 8px 0 16px;">最终游动距离: <span id="final-dist" style="color:#38bdf8; font-weight:bold;">0m</span></p>
-      <button class="main-btn" id="btn-restart">再次挑战</button>
+      <h2 id="over-title" style="font-size:28px; font-weight:800; color:#f87171;">能量耗尽</h2>
+      <p id="over-desc" style="color:#cbd5e1; font-size:14px; margin: 10px 0 18px;">最终距离: <span id="final-dist" style="color:#38bdf8; font-weight:bold;">0m</span></p>
+      <button class="btn-main" id="btn-restart">再次挑战</button>
     </div>
   </div>
 
   <script>
     /* ==========================================================================
-       1. 素材配置与替换接口 (ASSET CONFIGURATION)
+       1. 素材扩展接口 (ASSET PACK CONFIGURATION)
        --------------------------------------------------------------------------
-       后续需要接入正式素材包时，只需修改下方对象中的 useImage 为 true，
-       并填入对应的图片 URL 或 base64 即可无缝替换，无需改动底层玩法逻辑。
+       后续在 GitHub 仓库添加素材包时，只需在此替换图片路径并设 useImage: true
        ========================================================================== */
     const ASSET_CONFIG = {
-      // 玩家角色贴图（未配置时自动使用程序化绘制的生动发光游鱼）
-      player: {
-        useImage: false,
-        src: "" // 例如: "assets/diver.png"
-      },
-      // 能量球补给道具
-      energyOrb: {
-        useImage: false,
-        src: "" // 例如: "assets/energy_bubble.png"
-      },
-      // 塑料垃圾障碍物
-      plasticBag: {
-        useImage: false,
-        src: "" // 例如: "assets/plastic_trash.png"
-      },
-      // 150m Boss 首领贴图
-      boss: {
-        useImage: false,
-        src: "" // 例如: "assets/kraken_boss.png"
-      },
-      // 海底背景图
-      background: {
-        useImage: false,
-        src: "" // 例如: "assets/ocean_bg.png"
-      }
+      diver: { useImage: false, src: "" },      // 潜水员主角
+      plasticBag: { useImage: false, src: "" }, // 塑料袋
+      shell: { useImage: false, src: "" },      // 贝壳
+      poop: { useImage: false, src: "" },       // 大便
+      turtle: { useImage: false, src: "" },     // 海龟硬性障碍物
+      energyOrb: { useImage: false, src: "" },  // 能量球
+      boss: { useImage: false, src: "" },       // 150m Boss
+      background: { useImage: false, src: "" }  // 背景图
     };
 
     /* ==========================================================================
-       2. 课堂题库配置 (QUESTION BANK)
-       --------------------------------------------------------------------------
-       支持随时扩充或替换为课堂全科题目（科学、数学、英语、常识等）
+       2. 课堂题库 (全科知识/海洋常识)
        ========================================================================== */
     const QUESTION_BANK = [
       {
-        type: "marine",
-        q: "以下哪种生物属于海洋哺乳动物？",
+        q: "以下哪种动物属于海洋哺乳动物？",
         options: ["大白鲨", "海豚", "蓝鳍金枪鱼", "海马"],
+        answer: 1
+      },
+      {
+        q: "塑料垃圾在深海中分解通常需要多少年？",
+        options: ["1-2年", "10年", "100至500年以上", "半年内"],
+        answer: 2
+      },
+      {
+        q: "海龟在海洋生态中扮演的重要角色之一是控制什么生物的数量？",
+        options: ["水母", "大白鲨", "海星", "鲸鱼"],
+        answer: 0
+      },
+      {
+        q: "珊瑚礁虽然占海洋面积不到0.1%，却养育了多少比例的海洋生物？",
+        options: ["约5%", "约25%", "约50%", "不足1%"],
+        answer: 1
+      },
+      {
+        q: "【Boss 弱点试题】地球表面约有多少比例被海洋所覆盖？",
+        options: ["约50%", "约60%", "约71%", "约85%"],
+        answer: 2,
+        isBoss: true
+      },
+      {
+        q: "【Boss 弱点试题】马里亚纳海沟的最深处大约是多少米？",
+        options: ["约3000米", "约6000米", "约11000米", "约20000米"],
+        answer: 2,
+        isBoss: true
+      },
+      {
+        q: "【Boss 弱点试题】深海热泉（黑烟囱）生态系统的初级能量来源是什么？",
+        options: ["太阳光合作用", "化学硫化物合成", "月球潮汐引力", "洋流冲击"],
         answer: 1,
-        explanation: "海豚用肺呼吸，胎生哺乳，属于哺乳纲鲸目。"
-      },
-      {
-        type: "ecology",
-        q: "一个塑料袋在海洋环境中自然降解大约需要多少年？",
-        options: ["1 到 2 年", "5 到 10 年", "100 到 500 年", "几个月即可降解"],
-        answer: 2,
-        explanation: "大部分塑料袋在自然环境中需几百年才能降解，严重危害海洋生态。"
-      },
-      {
-        type: "marine",
-        q: "地球上最大的动物是什么？",
-        options: ["巨齿鲨", "蓝鲸", "大王乌贼", "抹香鲸"],
-        answer: 1,
-        explanation: "蓝鲸是已知地球上生存过的体型最大的动物，体长可达30米以上。"
-      },
-      {
-        type: "science",
-        q: "海洋中被称为“海洋热带雨林”的是什么生态系统？",
-        options: ["深海海沟", "红树林", "珊瑚礁", "海草床"],
-        answer: 2,
-        explanation: "珊瑚礁孕育了极度丰富的海洋物种，被称为海洋中的热带雨林。"
-      },
-      {
-        type: "boss",
-        q: "【Boss 弱点攻击】深海中产生生物发光（Bioluminescence）的主要化学物质是？",
-        options: ["荧光素与荧光素酶", "叶绿素", "胡萝卜素", "血红蛋白"],
-        answer: 0,
-        explanation: "深海生物通过荧光素在荧光素酶催化下氧化发光。"
-      },
-      {
-        type: "boss",
-        q: "【Boss 弱点攻击】世界上海洋最深的地方是哪个海沟？",
-        options: ["爪哇海沟", "波多黎各海沟", "马里亚纳海沟", "日本海沟"],
-        answer: 2,
-        explanation: "马里亚纳海沟的挑战者深渊深度接近11,000米。"
-      },
-      {
-        type: "boss",
-        q: "【Boss 弱点攻击】海洋植物和浮游植物产生的氧气约占地球大气氧气的多少？",
-        options: ["约 10%", "约 25%", "约 50% 以上", "不足 5%"],
-        answer: 2,
-        explanation: "海洋中的浮游植物光合作用产生了地球上一半以上的氧气。"
+        isBoss: true
       }
     ];
 
     /* ==========================================================================
-       3. 简易 Web Audio 合成音效（无需外部音频文件即可直接播放）
+       3. 简易合成音效系统 (Web Audio API)
        ========================================================================== */
-    class SoundEngine {
+    class SoundFX {
       constructor() {
         this.ctx = null;
       }
       init() {
         if (!this.ctx) {
-          const AudioContext = window.AudioContext || window.webkitAudioContext;
-          if (AudioContext) this.ctx = new AudioContext();
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (AC) this.ctx = new AC();
         }
       }
-      playTone(freq, duration, type = "sine", gainVal = 0.1) {
+      playTone(freq, dur, type = "sine", gainVal = 0.12) {
         if (!this.ctx) return;
         try {
           const osc = this.ctx.createOscillator();
-          const gain = this.ctx.createGain();
+          const g = this.ctx.createGain();
           osc.type = type;
           osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-          gain.gain.setValueAtTime(gainVal, this.ctx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
-          osc.connect(gain);
-          gain.connect(this.ctx.destination);
+          g.gain.setValueAtTime(gainVal, this.ctx.currentTime);
+          g.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + dur);
+          osc.connect(g);
+          g.connect(this.ctx.destination);
           osc.start();
-          osc.stop(this.ctx.currentTime + duration);
-        } catch(e) {}
+          osc.stop(this.ctx.currentTime + dur);
+        } catch(e){}
       }
       pickup() {
         this.init();
-        this.playTone(523.25, 0.1, "triangle", 0.15); // C5
-        setTimeout(() => this.playTone(659.25, 0.15, "triangle", 0.15), 60); // E5
+        this.playTone(523.25, 0.1, "triangle", 0.12);
+        setTimeout(() => this.playTone(659.25, 0.15, "triangle", 0.12), 60);
       }
-      hitObstacle() {
+      goldenPower() {
         this.init();
-        this.playTone(130, 0.25, "sawtooth", 0.2);
+        [523, 659, 784, 1046].forEach((f, i) => {
+          setTimeout(() => this.playTone(f, 0.25, "sine", 0.2), i * 90);
+        });
       }
-      correct() {
+      stunBuzzer() {
         this.init();
-        this.playTone(587.33, 0.12, "sine", 0.2);
-        setTimeout(() => this.playTone(880, 0.25, "sine", 0.2), 100);
+        this.playTone(150, 0.4, "sawtooth", 0.25);
       }
-      wrong() {
+      throwShell() {
         this.init();
-        this.playTone(180, 0.2, "sawtooth", 0.2);
-        setTimeout(() => this.playTone(140, 0.3, "sawtooth", 0.2), 150);
+        this.playTone(400, 0.1, "sine", 0.2);
+        setTimeout(() => this.playTone(800, 0.2, "triangle", 0.2), 80);
       }
-      bossAlert() {
+      throwPoop() {
         this.init();
-        this.playTone(220, 0.2, "square", 0.25);
-        setTimeout(() => this.playTone(200, 0.3, "square", 0.25), 200);
+        this.playTone(180, 0.15, "square", 0.2);
+        setTimeout(() => this.playTone(120, 0.3, "sawtooth", 0.25), 100);
+      }
+      bumpTurtle() {
+        this.init();
+        this.playTone(90, 0.2, "sine", 0.3);
       }
     }
-    const sounds = new SoundEngine();
+    const sfx = new SoundFX();
 
     /* ==========================================================================
-       4. 游戏核心逻辑 (GAME ENGINE)
+       4. 画布与基础设定
        ========================================================================== */
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
-    // UI 节点
+    // UI 元素
     const distEl = document.getElementById("dist-val");
     const energyBarEl = document.getElementById("energy-bar-fill");
     const energyValEl = document.getElementById("energy-val");
     const scoreEl = document.getElementById("score-val");
-    const bossBannerEl = document.getElementById("boss-banner");
+    const statusBannerEl = document.getElementById("status-banner");
+    const attackBannerEl = document.getElementById("attack-banner");
+    const slotIconEl = document.getElementById("slot-icon");
+    const btnThrowEl = document.getElementById("btn-throw");
     const quizModalEl = document.getElementById("quiz-modal");
+    const quizTimerEl = document.getElementById("quiz-timer");
     const quizBadgeEl = document.getElementById("quiz-badge");
     const quizQEl = document.getElementById("quiz-q");
     const quizOptsEl = document.getElementById("quiz-opts");
     const startScreenEl = document.getElementById("start-screen");
     const gameOverScreenEl = document.getElementById("game-over-screen");
-    const overTitleEl = document.getElementById("over-title");
-    const overDescEl = document.getElementById("over-desc");
     const finalDistEl = document.getElementById("final-dist");
 
-    // 游戏状态
-    const STATE = {
-      MENU: 0,
-      PLAYING: 1,
-      QUIZ: 2,
-      BOSS_INTRO: 3,
-      BOSS_BATTLE: 4,
-      GAMEOVER: 5
-    };
+    // 游戏状态常量
+    const S_MENU = 0, S_PLAYING = 1, S_QUIZ = 2, S_BOSS_BATTLE = 3, S_OVER = 4;
+    let gameState = S_MENU;
 
-    let gameState = STATE.MENU;
     let distance = 0; // 米
     let score = 0;
-    let energy = 100; // 0 - 100
-    let gameSpeed = 3.5;
-    let baseSpeed = 3.5;
-    let isDashing = false;
-    let invulnerableTimer = 0;
+    let energy = 100;
+    let baseSpeed = 3.6;
+    let currentSpeed = 3.6;
 
-    // Boss 状态
+    // 金身与眩晕计时器 (帧数，60帧/秒)
+    let goldenBodyTimer = 0; // 5秒 = 300 帧
+    let stunnedTimer = 0;    // 3秒 = 180 帧
+
+    // 道具槽（null, "SHELL", "POOP"）
+    let currentItem = null;
+
+    // 150m Boss 战数据
     let bossActive = false;
-    let bossHp = 3; // 需连答3题
-    let bossTargetDist = 150; // 每 150m 触发一次
+    let bossHp = 3;
+    let bossTargetDist = 150;
     let bossX = 960 + 100;
     let bossY = 270;
     let bossAnimAngle = 0;
 
-    // 玩家对象
+    // 主角潜水员
     const player = {
-      x: 120,
+      x: 130,
       y: 270,
       targetY: 270,
       vy: 0,
-      width: 54,
+      width: 58,
       height: 32,
-      angle: 0,
-      tailWiggle: 0
+      legWiggle: 0,
+      bubbleTimer: 0
     };
 
-    // 实体池
-    let energyOrbs = [];
-    let obstacles = []; // 塑料袋
-    let particles = [];
-    let backgroundBubbles = [];
+    // 同场的 5 名其他竞争玩家（AI 潜水员）
+    const OTHER_PLAYERS = [
+      { name: "P1_海龟仔", x: 260, y: 120, targetY: 120, color: "#f97316", state: "normal", stateTimer: 0 },
+      { name: "P2_蓝旗鱼", x: 380, y: 200, targetY: 200, color: "#a855f7", state: "normal", stateTimer: 0 },
+      { name: "P3_珊瑚妹", x: 490, y: 320, targetY: 320, color: "#ec4899", state: "normal", stateTimer: 0 },
+      { name: "P4_潜水喵", x: 620, y: 160, targetY: 160, color: "#10b981", state: "normal", stateTimer: 0 },
+      { name: "P5_波波龙", x: 740, y: 400, targetY: 400, color: "#eab308", state: "normal", stateTimer: 0 }
+    ];
 
-    // 初始化背景漂浮微粒
-    for (let i = 0; i < 45; i++) {
-      backgroundBubbles.push({
+    // 实体数组
+    let energyOrbs = [];
+    let plasticBags = [];
+    let attackItems = []; // 贝壳与大便
+    let turtles = [];     // 硬性障碍物海龟
+    let projectiles = []; // 玩家丢出去的飞行道具
+    let attackFX = [];    // 命中 5 个玩家的范围特效
+    let particles = [];
+    let bgBubbles = [];
+
+    // 初始化背景泡泡
+    for (let i = 0; i < 40; i++) {
+      bgBubbles.push({
         x: Math.random() * 960,
         y: Math.random() * 540,
-        radius: Math.random() * 4 + 1,
-        speed: Math.random() * 1.5 + 0.5,
-        alpha: Math.random() * 0.4 + 0.1
+        r: Math.random() * 3.5 + 1,
+        spd: Math.random() * 1.2 + 0.4,
+        alpha: Math.random() * 0.35 + 0.1
       });
     }
 
-    // 输入监听
+    // 输入响应
     const keys = { up: false, down: false, dash: false };
     window.addEventListener("keydown", (e) => {
       if (e.code === "ArrowUp" || e.code === "KeyW") keys.up = true;
       if (e.code === "ArrowDown" || e.code === "KeyS") keys.down = true;
       if (e.code === "Space" || e.code === "ShiftLeft") keys.dash = true;
+      if (e.code === "KeyE" || e.code === "KeyF") throwItem();
     });
     window.addEventListener("keyup", (e) => {
       if (e.code === "ArrowUp" || e.code === "KeyW") keys.up = false;
@@ -577,36 +723,208 @@
       if (e.code === "Space" || e.code === "ShiftLeft") keys.dash = false;
     });
 
-    // 移动端/触摸按键
-    const bindTouch = (el, keyName) => {
-      el.addEventListener("mousedown", (e) => { e.preventDefault(); keys[keyName] = true; });
-      el.addEventListener("mouseup", (e) => { e.preventDefault(); keys[keyName] = false; });
-      el.addEventListener("touchstart", (e) => { e.preventDefault(); keys[keyName] = true; });
-      el.addEventListener("touchend", (e) => { e.preventDefault(); keys[keyName] = false; });
+    // 绑定触摸按键
+    const bindBtn = (id, keyName) => {
+      const el = document.getElementById(id);
+      const press = (e) => { e.preventDefault(); keys[keyName] = true; };
+      const release = (e) => { e.preventDefault(); keys[keyName] = false; };
+      el.addEventListener("mousedown", press);
+      el.addEventListener("mouseup", release);
+      el.addEventListener("touchstart", press);
+      el.addEventListener("touchend", release);
     };
-    bindTouch(document.getElementById("btn-up"), "up");
-    bindTouch(document.getElementById("btn-down"), "down");
-    bindTouch(document.getElementById("btn-dash"), "dash");
+    bindBtn("btn-up", "up");
+    bindBtn("btn-down", "down");
+    bindBtn("btn-dash", "dash");
 
-    // 鼠标拖动/引导控制
+    // 丢按钮
+    btnThrowEl.onclick = () => throwItem();
+
+    // 鼠标/触控画布跟随
     canvas.addEventListener("mousemove", (e) => {
-      if (gameState !== STATE.PLAYING && gameState !== STATE.BOSS_BATTLE) return;
-      const rect = canvas.getBoundingClientRect();
-      const scaleY = 540 / rect.height;
-      player.targetY = (e.clientY - rect.top) * scaleY;
+      if (gameState !== S_PLAYING || stunnedTimer > 0) return;
+      const r = canvas.getBoundingClientRect();
+      player.targetY = (e.clientY - r.top) * (540 / r.height);
     });
 
-    // 生成机制跟踪
-    let lastEnergySpawnDist = 0;
-    let lastObstacleSpawnDist = 0;
+    /* ==========================================================================
+       5. 核心丢弃与攻击机制 (丢贝壳 / 丢大便)
+       ========================================================================== */
+    function setSlotItem(itemType) {
+      currentItem = itemType;
+      if (itemType === "SHELL") {
+        slotIconEl.textContent = "🐚";
+        btnThrowEl.classList.remove("disabled");
+      } else if (itemType === "POOP") {
+        slotIconEl.textContent = "💩";
+        btnThrowEl.classList.remove("disabled");
+      } else {
+        slotIconEl.textContent = "∅";
+        btnThrowEl.classList.add("disabled");
+      }
+    }
+
+    function throwItem() {
+      if (!currentItem || gameState !== S_PLAYING || stunnedTimer > 0) return;
+
+      const type = currentItem;
+      setSlotItem(null); // 消耗道具
+
+      if (type === "SHELL") {
+        sfx.throwShell();
+      } else {
+        sfx.throwPoop();
+      }
+
+      // 对画面中附近的 5 名玩家同时发起范围攻击！
+      OTHER_PLAYERS.forEach((target, i) => {
+        // 创建飞射投掷物
+        projectiles.push({
+          x: player.x,
+          y: player.y,
+          tx: target.x,
+          ty: target.y,
+          type: type,
+          progress: 0,
+          speed: 0.05 + (i * 0.005)
+        });
+      });
+
+      // 弹出攻击横幅
+      attackBannerEl.style.display = "block";
+      attackBannerEl.textContent = type === "SHELL" 
+        ? "🐚 掷出螺旋贝壳！附近的 5 名玩家已被强制答题！"
+        : "💩 扔出臭气大便！附近的 5 名玩家受到熏陶强制答题！";
+      setTimeout(() => attackBannerEl.style.display = "none", 2800);
+    }
+
+    /* ==========================================================================
+       6. 限时答题系统 (10s 倒计时 + 金身5s / 定身3s)
+       ========================================================================== */
+    let quizInterval = null;
+    let quizTimeLeft = 10;
+    let activeQuizObj = null;
+    let isBossTrial = false;
+
+    function triggerQuiz(isBoss = false) {
+      gameState = isBoss ? S_BOSS_BATTLE : S_QUIZ;
+      isBossTrial = isBoss;
+
+      let pool = QUESTION_BANK.filter(q => isBoss ? q.isBoss : !q.isBoss);
+      if (pool.length === 0) pool = QUESTION_BANK;
+      activeQuizObj = pool[Math.floor(Math.random() * pool.length)];
+
+      quizBadgeEl.textContent = isBoss ? `⚔️ Boss 弱点攻击 (剩余击破 [ ${bossHp}/3 ])` : "🚨 撞到塑料袋！强制限时答题";
+      quizBadgeEl.style.color = isBoss ? "#f87171" : "#38bdf8";
+
+      quizQEl.textContent = activeQuizObj.q;
+      quizOptsEl.innerHTML = "";
+
+      activeQuizObj.options.forEach((opt, idx) => {
+        const btn = document.createElement("button");
+        btn.className = "quiz-opt-btn";
+        btn.innerHTML = `<b>${String.fromCharCode(65 + idx)}.</b> ${opt}`;
+        btn.onclick = () => submitQuizAnswer(idx, btn);
+        quizOptsEl.appendChild(btn);
+      });
+
+      // 开启 10 秒倒计时
+      quizTimeLeft = 10;
+      quizTimerEl.textContent = `⏱️ 倒计时: ${quizTimeLeft}s`;
+      clearInterval(quizInterval);
+      quizInterval = setInterval(() => {
+        quizTimeLeft--;
+        quizTimerEl.textContent = `⏱️ 倒计时: ${quizTimeLeft}s`;
+        if (quizTimeLeft <= 0) {
+          clearInterval(quizInterval);
+          submitQuizAnswer(-1, null); // 超时当做答错
+        }
+      }, 1000);
+
+      quizModalEl.style.display = "flex";
+    }
+
+    function submitQuizAnswer(chosenIdx, btn) {
+      clearInterval(quizInterval);
+      const allBtns = quizOptsEl.querySelectorAll(".quiz-opt-btn");
+      allBtns.forEach(b => b.disabled = true);
+
+      const isCorrect = (chosenIdx === activeQuizObj.answer);
+
+      if (isCorrect) {
+        if (btn) btn.classList.add("correct");
+        sfx.goldenPower();
+
+        setTimeout(() => {
+          quizModalEl.style.display = "none";
+
+          if (isBossTrial) {
+            bossHp--;
+            score += 150;
+            // 攻击 Boss 特效
+            for (let i = 0; i < 20; i++) {
+              particles.push({
+                x: player.x, y: player.y,
+                vx: Math.cos(i) * 12, vy: Math.sin(i) * 4,
+                life: 1.0, decay: 0.03, color: "#facc15", r: 5
+              });
+            }
+
+            if (bossHp <= 0) {
+              // 打倒大 Boss！加更多分
+              bossActive = false;
+              score += 600; // 加巨多分
+              bossTargetDist += 150; // 下一个 150m
+              goldenBodyTimer = 300; // 开启 5 秒金身极速！
+              gameState = S_PLAYING;
+            } else {
+              triggerQuiz(true); // 继续回答下一道
+            }
+          } else {
+            // 【核心规则】：答对开启金身加速，持续 5 秒！
+            goldenBodyTimer = 300; // 60帧 * 5 = 300帧 (5秒)
+            stunnedTimer = 0;
+            energy = Math.min(100, energy + 30);
+            score += 80;
+            gameState = S_PLAYING;
+          }
+        }, 700);
+
+      } else {
+        // 答错或超时
+        if (btn) btn.classList.add("wrong");
+        allBtns[activeQuizObj.answer].classList.add("correct");
+        sfx.stunBuzzer();
+
+        setTimeout(() => {
+          quizModalEl.style.display = "none";
+          // 【核心规则】：答错 penalty 3 秒不能动！
+          stunnedTimer = 180; // 60帧 * 3 = 180帧 (3秒)
+          goldenBodyTimer = 0;
+          energy = Math.max(0, energy - 15);
+          gameState = S_PLAYING;
+
+          if (energy <= 0) {
+            endGame("能量耗尽", "深海潜行失去体力，请注意收集能量球与答对脱困！");
+          }
+        }, 1200);
+      }
+    }
+
+    /* ==========================================================================
+       7. 游戏主更新逻辑 (Update Loop)
+       ========================================================================== */
+    let lastEnergyDist = 0;
+    let lastPlasticDist = 0;
+    let lastItemDist = 0;
+    let lastTurtleDist = 0;
 
     function resetGame() {
       distance = 0;
       score = 0;
       energy = 100;
-      gameSpeed = baseSpeed;
-      isDashing = false;
-      invulnerableTimer = 0;
+      goldenBodyTimer = 0;
+      stunnedTimer = 0;
       bossActive = false;
       bossHp = 3;
       bossTargetDist = 150;
@@ -617,273 +935,284 @@
       player.vy = 0;
 
       energyOrbs = [];
-      obstacles = [];
+      plasticBags = [];
+      attackItems = [];
+      turtles = [];
+      projectiles = [];
+      attackFX = [];
       particles = [];
-      lastEnergySpawnDist = 0;
-      lastObstacleSpawnDist = 0;
 
-      bossBannerEl.style.display = "none";
+      lastEnergyDist = 0;
+      lastPlasticDist = 0;
+      lastItemDist = 0;
+      lastTurtleDist = 0;
+
+      setSlotItem(null);
+      statusBannerEl.style.display = "none";
       quizModalEl.style.display = "none";
       gameOverScreenEl.style.display = "none";
       startScreenEl.style.display = "none";
 
-      gameState = STATE.PLAYING;
+      gameState = S_PLAYING;
     }
 
-    /* ==========================================================================
-       5. 问答系统弹窗与判定
-       ========================================================================== */
-    let currentQuiz = null;
-    let isBossQuiz = false;
+    function update() {
+      if (gameState !== S_PLAYING && gameState !== S_BOSS_BATTLE) return;
 
-    function openQuiz(isBoss = false) {
-      gameState = isBoss ? STATE.BOSS_BATTLE : STATE.QUIZ;
-      isBossQuiz = isBoss;
+      // 1. 金身与眩晕定身逻辑
+      let isGolden = (goldenBodyTimer > 0);
+      let isStunned = (stunnedTimer > 0);
 
-      // 筛选题目
-      let pool = QUESTION_BANK.filter(item => isBoss ? item.type === "boss" : item.type !== "boss");
-      if (pool.length === 0) pool = QUESTION_BANK;
-      currentQuiz = pool[Math.floor(Math.random() * pool.length)];
+      if (isGolden) {
+        goldenBodyTimer--;
+        currentSpeed = baseSpeed * 2.2; // 极速加速！
+        statusBannerEl.className = "status-golden";
+        statusBannerEl.textContent = `✨ 金身护盾 & 极速加速中: ${(goldenBodyTimer / 60).toFixed(1)}s`;
+      } else if (isStunned) {
+        stunnedTimer--;
+        currentSpeed = 0; // 3秒完全不能动！
+        statusBannerEl.className = "status-stunned";
+        statusBannerEl.textContent = `⛔ 答错惩罚！定身冻结中: ${(stunnedTimer / 60).toFixed(1)}s`;
+      } else {
+        statusBannerEl.style.display = "none";
+        const isDashing = keys.dash && energy > 10;
+        currentSpeed = isDashing ? baseSpeed * 1.5 : baseSpeed;
+      }
 
-      quizBadgeEl.textContent = isBoss ? `⚔️ Boss 挑战 · 剩余生命 [ ${bossHp}/3 ]` : "🚨 撞到塑料垃圾！答题脱困";
-      quizBadgeEl.style.color = isBoss ? "#f87171" : "#00e1ff";
-      quizBadgeEl.style.background = isBoss ? "rgba(239,68,68,0.2)" : "rgba(0, 210, 255, 0.2)";
+      // 2. 能量消耗（游动耗能）
+      if (!isStunned) {
+        const drain = isGolden ? 0.01 : (keys.dash ? 0.05 : 0.02);
+        energy -= drain;
+        if (energy <= 0) {
+          energy = 0;
+          endGame("能量耗尽", "游动需要消耗体力！记得每 10 米补充能量球。");
+          return;
+        }
+        distance += (currentSpeed * 0.025);
+        score += isGolden ? 3 : 1;
+      }
 
-      quizQEl.textContent = currentQuiz.q;
-      quizOptsEl.innerHTML = "";
+      // 3. 潜水员上下移动
+      if (!isStunned) {
+        if (keys.up) player.vy -= 0.65;
+        if (keys.down) player.vy += 0.65;
+        if (!keys.up && !keys.down) {
+          player.vy += (player.targetY - player.y) * 0.05;
+        }
+        player.vy *= 0.86;
+        player.y += player.vy;
+        player.y = Math.max(50, Math.min(490, player.y));
+        player.legWiggle += 0.18 + (currentSpeed * 0.04);
 
-      currentQuiz.options.forEach((opt, idx) => {
-        const btn = document.createElement("button");
-        btn.className = "opt-btn";
-        btn.innerHTML = `<b>${String.fromCharCode(65 + idx)}.</b> ${opt}`;
-        btn.onclick = () => handleAnswer(idx, btn);
-        quizOptsEl.appendChild(btn);
+        // 呼吸管气泡
+        player.bubbleTimer++;
+        if (player.bubbleTimer % 20 === 0) {
+          particles.push({
+            x: player.x + 10, y: player.y - 12,
+            vx: -currentSpeed * 0.5, vy: -1.5,
+            life: 1.0, decay: 0.03, color: "rgba(220,250,255,0.7)", r: 3
+          });
+        }
+      }
+
+      // 4. 背景微粒与竞争对手更新
+      bgBubbles.forEach(b => {
+        b.x -= b.spd * (currentSpeed + 1);
+        if (b.x < -10) { b.x = 970; b.y = Math.random() * 540; }
       });
 
-      quizModalEl.style.display = "flex";
-    }
+      OTHER_PLAYERS.forEach(p => {
+        // AI 游弋
+        p.targetY += (Math.random() - 0.5) * 4;
+        p.targetY = Math.max(60, Math.min(480, p.targetY));
+        p.y += (p.targetY - p.y) * 0.04;
 
-    function handleAnswer(selectedIdx, btnElement) {
-      const allBtns = quizOptsEl.querySelectorAll(".opt-btn");
-      allBtns.forEach(b => b.disabled = true);
-
-      const isCorrect = (selectedIdx === currentQuiz.answer);
-
-      if (isCorrect) {
-        btnElement.classList.add("correct");
-        sounds.correct();
-        createRewardBurst(player.x, player.y, "#34d399");
-
-        setTimeout(() => {
-          quizModalEl.style.display = "none";
-
-          if (isBossQuiz) {
-            bossHp--;
-            score += 150;
-            // 攻击 Boss 的粒子特效
-            createTorpedo(player.x, player.y, bossX, bossY);
-
-            if (bossHp <= 0) {
-              // Boss 击破！
-              sounds.correct();
-              bossActive = false;
-              bossBannerEl.style.display = "none";
-              energy = Math.min(100, energy + 40);
-              score += 500;
-              bossTargetDist += 150; // 下一个 Boss 在 300m
-              invulnerableTimer = 120; // 2秒无敌加速
-              gameState = STATE.PLAYING;
-            } else {
-              // 继续回答下一道 Boss 题
-              openQuiz(true);
-            }
-          } else {
-            // 普通答题成功：获得能量补给并脱困，短暂无敌
-            energy = Math.min(100, energy + 25);
-            score += 50;
-            invulnerableTimer = 90; // 1.5秒免伤
-            gameState = STATE.PLAYING;
-          }
-        }, 700);
-
-      } else {
-        btnElement.classList.add("wrong");
-        allBtns[currentQuiz.answer].classList.add("correct");
-        sounds.wrong();
-
-        setTimeout(() => {
-          quizModalEl.style.display = "none";
-          // 答错惩罚：扣除少量能量，减速片刻
-          energy = Math.max(0, energy - 10);
-          invulnerableTimer = 60;
-          gameState = STATE.PLAYING;
-
-          if (energy <= 0) {
-            triggerGameOver("能量耗尽", "在深海中失去前进动力，请合理补充能量与答题！");
-          }
-        }, 1200);
-      }
-    }
-
-    function triggerGameOver(title, desc) {
-      gameState = STATE.GAMEOVER;
-      overTitleEl.textContent = title;
-      overDescEl.textContent = desc;
-      finalDistEl.textContent = `${Math.floor(distance)}m (积分: ${score})`;
-      gameOverScreenEl.style.display = "flex";
-    }
-
-    /* ==========================================================================
-       6. 物理与生成更新循环
-       ========================================================================== */
-    function update() {
-      if (gameState !== STATE.PLAYING && gameState !== STATE.BOSS_INTRO && gameState !== STATE.BOSS_BATTLE) {
-        return;
-      }
-
-      // 冲刺状态
-      isDashing = keys.dash && energy > 10;
-      gameSpeed = isDashing ? baseSpeed * 1.6 : baseSpeed;
-
-      // 能量耗损机制
-      const drainRate = isDashing ? 0.05 : 0.02;
-      energy -= drainRate;
-      if (energy <= 0) {
-        energy = 0;
-        triggerGameOver("能量耗尽", "深海游泳需要充沛能量！撞到塑料袋可答题回能，平时多收集光球。");
-        return;
-      }
-
-      // 游动距离累加 (与速度成正比)
-      distance += (gameSpeed * 0.025);
-      score += isDashing ? 2 : 1;
-
-      // 玩家垂直移动控制 (惯性平滑)
-      if (keys.up) player.vy -= 0.6;
-      if (keys.down) player.vy += 0.6;
-      if (!keys.up && !keys.down) {
-        // 靠近鼠标 targetY
-        const dy = player.targetY - player.y;
-        player.vy += dy * 0.04;
-      }
-      player.vy *= 0.88; // 阻尼
-      player.y += player.vy;
-      player.y = Math.max(40, Math.min(500, player.y));
-      player.angle = player.vy * 0.05;
-      player.tailWiggle += 0.2 + (gameSpeed * 0.05);
-
-      if (invulnerableTimer > 0) invulnerableTimer--;
-
-      // 背景微粒
-      backgroundBubbles.forEach(b => {
-        b.x -= b.speed * (gameSpeed / 2);
-        if (b.x < -10) {
-          b.x = 970;
-          b.y = Math.random() * 540;
+        if (p.state === "quiz") {
+          p.stateTimer--;
+          p.x -= currentSpeed * 0.5; // 被命中答题时速度变慢落后
+          if (p.stateTimer <= 0) p.state = "normal";
+        } else {
+          // 保持在附近相对位置
+          p.x += (Math.random() - 0.49) * 0.8;
         }
       });
 
       // ----------------------------------------------------
-      // 生成逻辑：约每 10 米生成能量球补给 (+Energy)
+      // 生成 1: 【游 10m 需补充一次 energy】
       // ----------------------------------------------------
-      if (distance - lastEnergySpawnDist >= 10 && !bossActive) {
-        lastEnergySpawnDist = distance;
+      if (distance - lastEnergyDist >= 10 && !bossActive) {
+        lastEnergyDist = distance;
         energyOrbs.push({
           x: 980,
-          y: Math.random() * 440 + 50,
-          radius: 14,
-          glowPhase: Math.random() * Math.PI * 2
+          y: Math.random() * 420 + 60,
+          r: 15,
+          phase: Math.random() * Math.PI
         });
       }
 
       // ----------------------------------------------------
-      // 生成逻辑：障碍物（塑料袋/垃圾）
+      // 生成 2: 【塑料袋 (Plastic Bag) 答题触发】
       // ----------------------------------------------------
-      if (distance - lastObstacleSpawnDist >= (16 + Math.random() * 12) && !bossActive) {
-        lastObstacleSpawnDist = distance;
-        obstacles.push({
+      if (distance - lastPlasticDist >= (18 + Math.random() * 10) && !bossActive) {
+        lastPlasticDist = distance;
+        plasticBags.push({
           x: 980,
           y: Math.random() * 420 + 60,
-          width: 38,
-          height: 38,
-          rot: Math.random() * Math.PI,
-          rotSpeed: (Math.random() - 0.5) * 0.04
+          w: 36, h: 36,
+          rot: 0
         });
       }
 
       // ----------------------------------------------------
-      // 150 米 Boss 战触发与推进
+      // 生成 3: 【贝壳 🐚 与 大便 💩 捡起作为攻击道具】
+      // ----------------------------------------------------
+      if (distance - lastItemDist >= (22 + Math.random() * 12) && !bossActive) {
+        lastItemDist = distance;
+        const itemType = Math.random() > 0.5 ? "SHELL" : "POOP";
+        attackItems.push({
+          x: 980,
+          y: Math.random() * 380 + 80,
+          type: itemType
+        });
+      }
+
+      // ----------------------------------------------------
+      // 生成 4: 【海龟 🐢 是硬性障碍物】
+      // ----------------------------------------------------
+      if (distance - lastTurtleDist >= (30 + Math.random() * 20) && !bossActive) {
+        lastTurtleDist = distance;
+        turtles.push({
+          x: 990,
+          y: Math.random() * 380 + 70,
+          w: 64, h: 42,
+          swimAngle: 0
+        });
+      }
+
+      // ----------------------------------------------------
+      // 150m 大 Boss 战
       // ----------------------------------------------------
       if (distance >= bossTargetDist && !bossActive) {
         bossActive = true;
         bossHp = 3;
         bossX = 960 + 80;
-        sounds.bossAlert();
-        bossBannerEl.style.display = "block";
-        gameState = STATE.BOSS_INTRO;
+        triggerQuiz(true);
       }
 
-      if (gameState === STATE.BOSS_INTRO) {
-        bossX -= 2.5;
-        if (bossX <= 760) {
-          // Boss 入场完毕，触发对战答题
-          gameState = STATE.BOSS_BATTLE;
-          openQuiz(true);
-        }
-      }
-
-      // 能量球移动与碰撞
+      // 实体交互更新：能量球
       for (let i = energyOrbs.length - 1; i >= 0; i--) {
-        const orb = energyOrbs[i];
-        orb.x -= gameSpeed;
-        orb.glowPhase += 0.08;
-
-        // 判定拾取
-        const dx = (player.x) - orb.x;
-        const dy = (player.y) - orb.y;
-        const dist = Math.hypot(dx, dy);
-
-        if (dist < player.width / 2 + orb.radius) {
-          // 拾取成功
-          energy = Math.min(100, energy + 18);
-          score += 25;
-          sounds.pickup();
-          createRewardBurst(orb.x, orb.y, "#38bdf8");
+        const o = energyOrbs[i];
+        o.x -= currentSpeed;
+        o.phase += 0.08;
+        if (Math.hypot(player.x - o.x, player.y - o.y) < player.width/2 + o.r) {
+          energy = Math.min(100, energy + 20);
+          score += 30;
+          sfx.pickup();
+          createBurst(o.x, o.y, "#38bdf8");
           energyOrbs.splice(i, 1);
           continue;
         }
-
-        if (orb.x < -30) energyOrbs.splice(i, 1);
+        if (o.x < -30) energyOrbs.splice(i, 1);
       }
 
-      // 塑料袋移动与碰撞
-      for (let i = obstacles.length - 1; i >= 0; i--) {
-        const obs = obstacles[i];
-        obs.x -= gameSpeed * 1.1;
-        obs.rot += obs.rotSpeed;
+      // 实体交互更新：捡道具（贝壳/大便）
+      for (let i = attackItems.length - 1; i >= 0; i--) {
+        const it = attackItems[i];
+        it.x -= currentSpeed;
+        if (Math.hypot(player.x - it.x, player.y - it.y) < 32) {
+          // 拾取进槽位
+          setSlotItem(it.type);
+          sfx.pickup();
+          createBurst(it.x, it.y, it.type === "SHELL" ? "#f59e0b" : "#a16207");
+          attackItems.splice(i, 1);
+          continue;
+        }
+        if (it.x < -30) attackItems.splice(i, 1);
+      }
 
-        if (invulnerableTimer === 0) {
-          const dx = player.x - obs.x;
-          const dy = player.y - obs.y;
-          if (Math.hypot(dx, dy) < 32) {
-            // 碰撞！触发答题脱困
-            sounds.hitObstacle();
-            obstacles.splice(i, 1);
-            openQuiz(false);
-            break;
+      // 实体交互更新：塑料袋（碰触强制限时答题）
+      for (let i = plasticBags.length - 1; i >= 0; i--) {
+        const pb = plasticBags[i];
+        pb.x -= currentSpeed * 1.05;
+        pb.rot += 0.02;
+
+        if (!isGolden && !isStunned && Math.hypot(player.x - pb.x, player.y - pb.y) < 32) {
+          plasticBags.splice(i, 1);
+          triggerQuiz(false);
+          break;
+        }
+        if (pb.x < -40) plasticBags.splice(i, 1);
+      }
+
+      // 实体交互更新：海龟 🐢（硬性障碍物 Solid Obstacle）
+      for (let i = turtles.length - 1; i >= 0; i--) {
+        const t = turtles[i];
+        t.x -= (currentSpeed + 0.8); // 缓缓向后游
+        t.swimAngle += 0.05;
+
+        // 硬碰撞物理阻挡判定：如果金身则冲碎，否则不能穿过被阻挡
+        const dx = Math.abs(player.x - t.x);
+        const dy = Math.abs(player.y - t.y);
+
+        if (dx < (player.width / 2 + t.w / 2) && dy < (player.height / 2 + t.h / 2)) {
+          if (isGolden) {
+            // 金身状态直接撞飞硬障碍物
+            createBurst(t.x, t.y, "#facc15");
+            turtles.splice(i, 1);
+            continue;
+          } else {
+            // 硬性阻挡！阻挡玩家前进，上下推开
+            sfx.bumpTurtle();
+            if (player.y < t.y) player.y -= 3;
+            else player.y += 3;
+            // 速度受阻
+            player.vy *= -0.5;
+            // 冒出碰撞水花
+            particles.push({
+              x: player.x + 20, y: player.y,
+              vx: -2, vy: (Math.random() - 0.5) * 4,
+              life: 0.5, decay: 0.05, color: "#94a3b8", r: 4
+            });
           }
         }
-
-        if (obs.x < -50) obstacles.splice(i, 1);
+        if (t.x < -80) turtles.splice(i, 1);
       }
 
-      // 粒子与鱼雷更新
+      // 飞向 5 个竞争对手的投掷物飞行
+      for (let i = projectiles.length - 1; i >= 0; i--) {
+        const p = projectiles[i];
+        p.progress += p.speed;
+        p.x = player.x + (p.tx - player.x) * p.progress;
+        p.y = player.y + (p.ty - player.y) * p.progress - Math.sin(p.progress * Math.PI) * 40;
+
+        if (p.progress >= 1.0) {
+          // 命中对手！触发受击特效与强制答题
+          attackFX.push({
+            x: p.tx, y: p.ty,
+            type: p.type,
+            life: 1.0
+          });
+          // 让该竞争对手进入受击答题状态
+          const hitTarget = OTHER_PLAYERS.find(op => Math.hypot(op.x - p.tx, op.y - p.ty) < 20);
+          if (hitTarget) {
+            hitTarget.state = "quiz";
+            hitTarget.stateTimer = 180; // 冻结答题 3 秒
+          }
+          projectiles.splice(i, 1);
+        }
+      }
+
+      // 粒子与特效衰减
+      for (let i = attackFX.length - 1; i >= 0; i--) {
+        attackFX[i].life -= 0.025;
+        if (attackFX[i].life <= 0) attackFX.splice(i, 1);
+      }
       for (let i = particles.length - 1; i >= 0; i--) {
-        const p = particles[i];
-        p.x += p.vx;
-        p.y += p.vy;
-        p.life -= p.decay;
-        if (p.life <= 0) particles.splice(i, 1);
+        const pt = particles[i];
+        pt.x += pt.vx;
+        pt.y += pt.vy;
+        pt.life -= pt.decay;
+        if (pt.life <= 0) particles.splice(i, 1);
       }
 
       // 更新 HUD
@@ -891,309 +1220,314 @@
       scoreEl.textContent = score;
       energyValEl.textContent = `${Math.round(energy)}%`;
       energyBarEl.style.width = `${Math.max(0, energy)}%`;
-
-      if (energy < 25) {
-        energyBarEl.style.background = "linear-gradient(90deg, #ef4444, #f87171)";
-      } else if (energy < 50) {
-        energyBarEl.style.background = "linear-gradient(90deg, #f59e0b, #fbbf24)";
-      } else {
-        energyBarEl.style.background = "linear-gradient(90deg, #00f2fe, #4facfe)";
-      }
+      energyBarEl.style.background = energy < 30 ? "#ef4444" : (energy < 60 ? "#f59e0b" : "#00f2fe");
     }
 
-    // 粒子爆炸
-    function createRewardBurst(x, y, color) {
-      for (let i = 0; i < 14; i++) {
-        const angle = Math.random() * Math.PI * 2;
+    function createBurst(x, y, color) {
+      for (let i = 0; i < 12; i++) {
+        const a = Math.random() * Math.PI * 2;
         const spd = Math.random() * 4 + 1;
         particles.push({
           x, y,
-          vx: Math.cos(angle) * spd,
-          vy: Math.sin(angle) * spd,
-          life: 1.0,
-          decay: Math.random() * 0.04 + 0.02,
-          color,
-          size: Math.random() * 4 + 2
+          vx: Math.cos(a) * spd,
+          vy: Math.sin(a) * spd,
+          life: 1.0, decay: 0.04, color, r: Math.random() * 4 + 2
         });
       }
     }
 
-    // 答对题射向 Boss 的光子鱼雷
-    function createTorpedo(x1, y1, x2, y2) {
-      const angle = Math.atan2(y2 - y1, x2 - x1);
-      for (let i = 0; i < 10; i++) {
-        particles.push({
-          x: x1, y: y1,
-          vx: Math.cos(angle) * (10 + i),
-          vy: Math.sin(angle) * (10 + i),
-          life: 1.0,
-          decay: 0.02,
-          color: "#67e8f9",
-          size: 6
-        });
-      }
+    function endGame(title, desc) {
+      gameState = S_OVER;
+      document.getElementById("over-title").textContent = title;
+      document.getElementById("over-desc").textContent = desc;
+      finalDistEl.textContent = `${Math.floor(distance)}m (总分: ${score})`;
+      gameOverScreenEl.style.display = "flex";
     }
 
     /* ==========================================================================
-       7. 渲染层 (Procedural Vector & Sprite Draw)
+       8. 渲染层 (完全呼应手绘草图的生动渲染)
        ========================================================================== */
     function render() {
       ctx.clearRect(0, 0, 960, 540);
 
-      // 海底渐变背景与深海光柱
-      const bgGrad = ctx.createLinearGradient(0, 0, 0, 540);
-      bgGrad.addColorStop(0, "#071b3d");
-      bgGrad.addColorStop(0.5, "#04122c");
-      bgGrad.addColorStop(1, "#020714");
-      ctx.fillStyle = bgGrad;
+      // 海底渐变与水下波浪
+      const grad = ctx.createLinearGradient(0, 0, 0, 540);
+      grad.addColorStop(0, "#082046");
+      grad.addColorStop(0.6, "#041430");
+      grad.addColorStop(1, "#020a1c");
+      ctx.fillStyle = grad;
       ctx.fillRect(0, 0, 960, 540);
 
-      // 顶部倾斜射入的微弱丁达尔光束
-      ctx.save();
-      ctx.fillStyle = "rgba(0, 210, 255, 0.035)";
+      // 海床沙地波浪
+      ctx.fillStyle = "#031733";
       ctx.beginPath();
-      ctx.moveTo(100, 0);
-      ctx.lineTo(260, 0);
-      ctx.lineTo(120, 540);
+      ctx.moveTo(0, 510);
+      for (let x = 0; x <= 960; x += 60) {
+        ctx.lineTo(x, 505 + Math.sin((x + distance * 10) * 0.01) * 8);
+      }
+      ctx.lineTo(960, 540);
       ctx.lineTo(0, 540);
       ctx.fill();
 
-      ctx.beginPath();
-      ctx.moveTo(450, 0);
-      ctx.lineTo(600, 0);
-      ctx.lineTo(480, 540);
-      ctx.lineTo(320, 540);
-      ctx.fill();
-      ctx.restore();
-
       // 背景气泡
-      backgroundBubbles.forEach(b => {
-        ctx.save();
+      bgBubbles.forEach(b => {
         ctx.fillStyle = `rgba(180, 240, 255, ${b.alpha})`;
         ctx.beginPath();
-        ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+        ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
         ctx.fill();
+      });
+
+      // 绘制场景实体：能量球
+      energyOrbs.forEach(o => {
+        ctx.save();
+        const r = o.r + Math.sin(o.phase) * 3;
+        const g = ctx.createRadialGradient(o.x, o.y, 2, o.x, o.y, r + 10);
+        g.addColorStop(0, "rgba(56, 189, 248, 0.95)");
+        g.addColorStop(0.6, "rgba(2, 132, 199, 0.4)");
+        g.addColorStop(1, "rgba(2, 132, 199, 0)");
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(o.x, o.y, r + 10, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 11px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("+E", o.x, o.y + 4);
         ctx.restore();
       });
 
-      // 绘制能量球 (+Energy)
-      energyOrbs.forEach(orb => {
-        drawEnergyOrb(orb.x, orb.y, orb.radius, orb.glowPhase);
+      // 绘制场景实体：贝壳 🐚 与 大便 💩
+      attackItems.forEach(it => {
+        ctx.save();
+        ctx.font = "26px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(it.type === "SHELL" ? "🐚" : "💩", it.x, it.y + 8);
+        ctx.restore();
       });
 
-      // 绘制障碍物 (Plastic Bag)
-      obstacles.forEach(obs => {
-        drawPlasticBag(obs.x, obs.y, obs.width, obs.height, obs.rot);
+      // 绘制塑料袋 (Plastic Bag)
+      plasticBags.forEach(pb => {
+        ctx.save();
+        ctx.translate(pb.x, pb.y);
+        ctx.rotate(pb.rot);
+        ctx.fillStyle = "rgba(241, 245, 249, 0.7)";
+        ctx.strokeStyle = "rgba(203, 213, 225, 0.9)";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.rect(-16, -16, 32, 32);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = "#ef4444";
+        ctx.font = "bold 14px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("!", 0, 5);
+        ctx.restore();
       });
 
-      // 绘制 Boss
-      if (bossActive) {
-        drawBoss(bossX, bossY);
-      }
+      // 绘制海龟 🐢（硬性障碍物）
+      turtles.forEach(t => {
+        drawTurtle(t.x, t.y, t.w, t.h, t.swimAngle);
+      });
 
-      // 绘制玩家角色
-      drawPlayer(player.x, player.y, player.angle, player.tailWiggle);
+      // 绘制同场的 5 名竞争玩家 (AI 潜水员)
+      OTHER_PLAYERS.forEach(op => {
+        drawOtherPlayer(op);
+      });
+
+      // 绘制飞射中的道具
+      projectiles.forEach(p => {
+        ctx.save();
+        ctx.font = "28px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(p.type === "SHELL" ? "🐚" : "💩", p.x, p.y);
+        ctx.restore();
+      });
+
+      // 绘制攻击命中特效
+      attackFX.forEach(fx => {
+        ctx.save();
+        ctx.globalAlpha = fx.life;
+        if (fx.type === "SHELL") {
+          ctx.strokeStyle = "#38bdf8";
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          ctx.arc(fx.x, fx.y, (1 - fx.life) * 50 + 10, 0, Math.PI * 2);
+          ctx.stroke();
+        } else {
+          // 绿色/棕色臭气圈
+          ctx.fillStyle = "rgba(161, 98, 7, 0.5)";
+          ctx.beginPath();
+          ctx.arc(fx.x, fx.y, (1 - fx.life) * 45 + 15, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.font = "16px sans-serif";
+          ctx.fillText("💨 臭气熏陶", fx.x - 30, fx.y - 25);
+        }
+        ctx.restore();
+      });
+
+      // 绘制主角潜水员（戴潜水镜与呼吸管）
+      drawDiver(player.x, player.y, player.legWiggle);
 
       // 绘制粒子
-      particles.forEach(p => {
+      particles.forEach(pt => {
         ctx.save();
-        ctx.globalAlpha = p.life;
-        ctx.fillStyle = p.color;
+        ctx.globalAlpha = pt.life;
+        ctx.fillStyle = pt.color;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.arc(pt.x, pt.y, pt.r, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
       });
-
-      // 无敌状态护盾光环
-      if (invulnerableTimer > 0) {
-        ctx.save();
-        ctx.strokeStyle = `rgba(56, 189, 248, ${0.4 + Math.sin(Date.now() * 0.02) * 0.3})`;
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(player.x, player.y, 36, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.restore();
-      }
     }
 
-    // 绘制玩家（纯程序化生动的发光潜游者/机械游鱼）
-    function drawPlayer(x, y, angle, wiggle) {
+    // 绘制海龟（硬性障碍物）
+    function drawTurtle(x, y, w, h, angle) {
       ctx.save();
       ctx.translate(x, y);
-      ctx.rotate(angle);
 
-      // 外发光
-      ctx.shadowColor = "#38bdf8";
-      ctx.shadowBlur = isDashing ? 20 : 10;
-
-      // 尾部摆动
-      const tailOffset = Math.sin(wiggle) * 8;
-
-      // 鱼身/机体
-      ctx.fillStyle = "#38bdf8";
+      // 龟壳外轮廓
+      ctx.fillStyle = "#15803d";
+      ctx.strokeStyle = "#166534";
+      ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.ellipse(0, 0, 26, 14, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // 腹鳍/尾鳍
-      ctx.fillStyle = "#0284c7";
-      ctx.beginPath();
-      ctx.moveTo(-20, 0);
-      ctx.lineTo(-38, -12 + tailOffset);
-      ctx.lineTo(-32, 0);
-      ctx.lineTo(-38, 12 + tailOffset);
-      ctx.closePath();
-      ctx.fill();
-
-      // 面罩/潜水目镜
-      ctx.fillStyle = "#f0f9ff";
-      ctx.beginPath();
-      ctx.ellipse(14, -2, 6, 7, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // 眼睛高光
-      ctx.fillStyle = "#0369a1";
-      ctx.beginPath();
-      ctx.arc(16, -2, 3, 0, Math.PI * 2);
-      ctx.fill();
-
-      // 冲刺推进尾焰
-      if (isDashing) {
-        ctx.fillStyle = "rgba(251, 191, 36, 0.8)";
-        ctx.beginPath();
-        ctx.moveTo(-24, -4);
-        ctx.lineTo(-44 - Math.random() * 10, 0);
-        ctx.lineTo(-24, 4);
-        ctx.closePath();
-        ctx.fill();
-      }
-
-      ctx.restore();
-    }
-
-    // 绘制能量球
-    function drawEnergyOrb(x, y, r, phase) {
-      ctx.save();
-      const pulse = Math.sin(phase) * 3;
-      const rad = r + pulse;
-
-      // 外部光晕
-      const grad = ctx.createRadialGradient(x, y, 2, x, y, rad + 12);
-      grad.addColorStop(0, "rgba(56, 189, 248, 0.9)");
-      grad.addColorStop(0.5, "rgba(14, 165, 233, 0.4)");
-      grad.addColorStop(1, "rgba(2, 132, 199, 0)");
-
-      ctx.fillStyle = grad;
-      ctx.beginPath();
-      ctx.arc(x, y, rad + 12, 0, Math.PI * 2);
-      ctx.fill();
-
-      // 核心光核
-      ctx.fillStyle = "#ffffff";
-      ctx.beginPath();
-      ctx.arc(x, y, rad * 0.6, 0, Math.PI * 2);
-      ctx.fill();
-
-      // 标注文字
-      ctx.fillStyle = "#e0f2fe";
-      ctx.font = "bold 11px sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText("+E", x, y + 4);
-
-      ctx.restore();
-    }
-
-    // 绘制漂浮塑料袋
-    function drawPlasticBag(x, y, w, h, rot) {
-      ctx.save();
-      ctx.translate(x, y);
-      ctx.rotate(rot);
-
-      ctx.fillStyle = "rgba(241, 245, 249, 0.65)";
-      ctx.strokeStyle = "rgba(203, 213, 225, 0.9)";
-      ctx.lineWidth = 1.5;
-
-      // 模拟褶皱塑料袋外形
-      ctx.beginPath();
-      ctx.moveTo(-w/2, -h/3);
-      ctx.bezierCurveTo(-w/3, -h/2, w/3, -h/2, w/2, -h/3);
-      ctx.lineTo(w/2 + 4, h/3);
-      ctx.bezierCurveTo(w/4, h/2 + 2, -w/4, h/2 - 2, -w/2, h/3);
-      ctx.closePath();
+      ctx.ellipse(0, 0, w/2, h/2, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
 
-      // 提手镂空
-      ctx.fillStyle = "rgba(4, 18, 44, 0.8)";
+      // 龟壳网状纹理（呼应手绘图中的网格）
+      ctx.strokeStyle = "#4ade80";
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.ellipse(0, -h/4, 8, 4, 0, 0, Math.PI * 2);
+      ctx.moveTo(-w/3, 0); ctx.lineTo(w/3, 0);
+      ctx.moveTo(0, -h/3); ctx.lineTo(0, h/3);
+      ctx.stroke();
+
+      // 四肢划水
+      const flipper = Math.sin(angle) * 8;
+      ctx.fillStyle = "#22c55e";
+      ctx.beginPath();
+      ctx.ellipse(-w/3, -h/2 + flipper, 12, 6, -0.4, 0, Math.PI * 2); // 前肢
+      ctx.ellipse(-w/3, h/2 - flipper, 12, 6, 0.4, 0, Math.PI * 2);  // 后肢
       ctx.fill();
 
-      // 警示标记
-      ctx.fillStyle = "#ef4444";
-      ctx.font = "bold 12px sans-serif";
+      // 头部
+      ctx.beginPath();
+      ctx.arc(-w/2 - 6, 0, 8, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 标签：硬性障碍物
+      ctx.fillStyle = "#facc15";
+      ctx.font = "bold 10px sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText("!", 0, h/5);
+      ctx.fillText("硬性障碍物", 0, -h/2 - 6);
 
       ctx.restore();
     }
 
-    // 绘制 Boss (深海巨型章鱼/发光怪兽)
-    function drawBoss(x, y) {
-      bossAnimAngle += 0.04;
+    // 绘制主角潜水员
+    function drawDiver(x, y, legWiggle) {
       ctx.save();
       ctx.translate(x, y);
 
-      // Boss 触手摆动
-      ctx.strokeStyle = "#831843";
-      ctx.lineWidth = 12;
-      ctx.lineCap = "round";
-      for (let i = -2; i <= 2; i++) {
-        const tentacleWiggle = Math.sin(bossAnimAngle + i) * 20;
+      const isGolden = goldenBodyTimer > 0;
+      const isStunned = stunnedTimer > 0;
+
+      // 金身视觉光环 (金色无敌护盾)
+      if (isGolden) {
+        ctx.shadowColor = "#facc15";
+        ctx.shadowBlur = 30;
+        ctx.strokeStyle = "#fef08a";
+        ctx.lineWidth = 4;
         ctx.beginPath();
-        ctx.moveTo(-40, i * 22);
-        ctx.quadraticCurveTo(-110, i * 28 + tentacleWiggle, -170, i * 36 + tentacleWiggle);
+        ctx.arc(0, 0, 42, 0, Math.PI * 2);
         ctx.stroke();
       }
 
-      // Boss 头部外壳
-      ctx.fillStyle = "#9d174d";
+      // 潜水员身体 (如果在定身中变灰)
+      ctx.fillStyle = isStunned ? "#64748b" : (isGolden ? "#fbbf24" : "#0284c7");
       ctx.beginPath();
-      ctx.ellipse(0, 0, 70, 65, 0, 0, Math.PI * 2);
+      ctx.ellipse(0, 0, 22, 12, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      // 凶猛发光独眼
-      ctx.fillStyle = "#fde047";
+      // 头部与潜水面罩
+      ctx.fillStyle = isStunned ? "#94a3b8" : (isGolden ? "#fde047" : "#38bdf8");
       ctx.beginPath();
-      ctx.ellipse(-25, 0, 18, 22, 0, 0, Math.PI * 2);
+      ctx.arc(16, -2, 10, 0, Math.PI * 2);
       ctx.fill();
 
-      ctx.fillStyle = "#dc2626";
+      // 潜水镜 (面罩反光)
+      ctx.fillStyle = "#ffffff";
       ctx.beginPath();
-      ctx.arc(-25, 0, 9, 0, Math.PI * 2);
+      ctx.ellipse(20, -2, 4, 6, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      // Boss 血条
-      ctx.fillStyle = "rgba(0,0,0,0.6)";
-      ctx.fillRect(-60, -85, 120, 12);
-      ctx.strokeStyle = "#f87171";
-      ctx.strokeRect(-60, -85, 120, 12);
+      // 呼吸管 (带呼吸管的潜水员)
+      ctx.strokeStyle = "#f59e0b";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(16, -2);
+      ctx.lineTo(22, -12);
+      ctx.lineTo(16, -18);
+      ctx.stroke();
 
-      const hpPercent = bossHp / 3;
-      ctx.fillStyle = "#ef4444";
-      ctx.fillRect(-59, -84, 118 * hpPercent, 10);
+      // 踢水脚蹼 (呼应手绘泳姿)
+      const leg1 = Math.sin(legWiggle) * 8;
+      const leg2 = -leg1;
+      ctx.strokeStyle = isGolden ? "#f59e0b" : "#0369a1";
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(-16, -4);
+      ctx.lineTo(-32, -8 + leg1);
+      ctx.moveTo(-16, 4);
+      ctx.lineTo(-32, 8 + leg2);
+      ctx.stroke();
 
-      ctx.fillStyle = "#fff";
-      ctx.font = "bold 11px sans-serif";
+      // 眩晕星星头顶转圈
+      if (isStunned) {
+        ctx.font = "16px sans-serif";
+        ctx.textAlign = "center";
+        const starRot = Date.now() * 0.006;
+        ctx.fillText("💫", Math.cos(starRot) * 16, -28 + Math.sin(starRot) * 6);
+      }
+
+      ctx.restore();
+    }
+
+    // 绘制竞争玩家 (AI)
+    function drawOtherPlayer(op) {
+      ctx.save();
+      ctx.translate(op.x, op.y);
+
+      // 名字标签
+      ctx.fillStyle = "#cbd5e1";
+      ctx.font = "11px sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText(`BOSS HP: ${bossHp}/3`, 0, -92);
+      ctx.fillText(op.name, 0, -18);
+
+      // 身体
+      ctx.fillStyle = op.color;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 18, 9, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 面罩
+      ctx.fillStyle = "#e0f2fe";
+      ctx.beginPath();
+      ctx.arc(12, -2, 7, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 如果正在被强制答题
+      if (op.state === "quiz") {
+        ctx.fillStyle = "#ef4444";
+        ctx.font = "bold 12px sans-serif";
+        ctx.fillText("❓强制答题中!", 0, -30);
+      }
 
       ctx.restore();
     }
 
     /* ==========================================================================
-       8. 主游戏循环启动
+       9. 游戏主循环
        ========================================================================== */
     function loop() {
       update();
@@ -1202,15 +1536,14 @@
     }
 
     document.getElementById("btn-start").onclick = () => {
-      sounds.init();
+      sfx.init();
       resetGame();
     };
     document.getElementById("btn-restart").onclick = () => {
-      sounds.init();
+      sfx.init();
       resetGame();
     };
 
-    // 启动循环（展示背景动画）
     loop();
   </script>
 </body>
