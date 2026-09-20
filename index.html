@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Ocean Adventure - 海底竞速与道具对战 (v3 修复与素材模块化版)</title>
+  <title>Ocean Adventure - 海底竞速与道具对战</title>
   <style>
     * {
       box-sizing: border-box;
@@ -14,7 +14,7 @@
       touch-action: manipulation;
     }
     body {
-      background: #020b1c;
+      background: #020a1a;
       color: #fff;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
       overflow: hidden;
@@ -30,11 +30,11 @@
       max-width: 1024px;
       height: 576px;
       max-height: 92vh;
-      background: #010712;
-      box-shadow: 0 12px 45px rgba(0, 180, 255, 0.28);
+      background: #010612;
+      box-shadow: 0 12px 45px rgba(0, 180, 255, 0.3);
       border-radius: 14px;
       overflow: hidden;
-      border: 2px solid rgba(0, 210, 255, 0.35);
+      border: 2px solid rgba(0, 210, 255, 0.4);
     }
     canvas {
       width: 100%;
@@ -80,10 +80,10 @@
       height: 100%;
       width: 100%;
       background: linear-gradient(90deg, #00f2fe, #4facfe);
-      transition: width 0.15s ease;
+      transition: width 0.1s ease;
     }
 
-    /* 状态提示横幅（金身 / 眩晕定身 / 攻击通知） */
+    /* 状态提示横幅 */
     #status-banner {
       position: absolute;
       top: 58px;
@@ -143,7 +143,7 @@
       pointer-events: none;
     }
 
-    /* 底部控制器（完全还原手稿） */
+    /* 底部控制器 */
     #controls-layout {
       position: absolute;
       bottom: 14px;
@@ -167,11 +167,11 @@
       gap: 8px;
     }
     .btn-sketch-sq {
-      width: 48px;
-      height: 48px;
-      background: rgba(8, 36, 76, 0.8);
+      width: 50px;
+      height: 50px;
+      background: rgba(8, 36, 76, 0.85);
       border: 2px solid #38bdf8;
-      border-radius: 10px;
+      border-radius: 12px;
       color: #38bdf8;
       font-size: 20px;
       font-weight: 900;
@@ -183,17 +183,17 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.4);
       transition: all 0.1s;
     }
-    .btn-sketch-sq:active {
+    .btn-sketch-sq:active, .btn-sketch-sq.active {
       background: #38bdf8;
       color: #04122c;
       transform: scale(0.92);
     }
     .btn-dash {
-      width: 54px;
-      height: 54px;
+      width: 56px;
+      height: 56px;
       background: rgba(14, 165, 233, 0.3);
       border: 2px solid #00f2fe;
-      border-radius: 12px;
+      border-radius: 14px;
       color: #00f2fe;
       font-size: 22px;
       font-weight: 900;
@@ -204,13 +204,13 @@
       backdrop-filter: blur(5px);
       transition: all 0.1s;
     }
-    .btn-dash:active {
+    .btn-dash:active, .btn-dash.active {
       background: #00f2fe;
       color: #020917;
       transform: scale(0.92);
     }
 
-    /* 右下角：方形道具格 + 红色“丢”按钮 */
+    /* 右下角：道具槽 + 丢按钮 */
     .right-controls {
       display: flex;
       align-items: center;
@@ -274,26 +274,26 @@
       box-shadow: none;
     }
 
-    /* 答题弹窗 */
+    /* 优化答题弹窗（半透明悬浮式，保留战场视野与 Boss 视觉） */
     #quiz-modal {
       position: absolute;
       inset: 0;
-      background: rgba(2, 8, 22, 0.92);
-      backdrop-filter: blur(12px);
+      background: rgba(2, 8, 22, 0.72);
+      backdrop-filter: blur(5px);
       display: none;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       z-index: 50;
-      padding: 20px;
+      padding: 16px;
     }
     .quiz-box {
       width: 100%;
-      max-width: 600px;
-      background: linear-gradient(145deg, #092248, #05142d);
+      max-width: 620px;
+      background: linear-gradient(145deg, rgba(9, 34, 72, 0.95), rgba(5, 20, 45, 0.95));
       border: 2px solid #00e5ff;
       border-radius: 18px;
-      padding: 26px;
+      padding: 22px 24px;
       box-shadow: 0 0 40px rgba(0, 229, 255, 0.35);
       text-align: center;
       position: relative;
@@ -321,16 +321,16 @@
       margin-bottom: 12px;
     }
     .quiz-question-text {
-      font-size: 19px;
+      font-size: 18px;
       font-weight: bold;
       line-height: 1.45;
-      margin-bottom: 22px;
+      margin-bottom: 20px;
       color: #f8fafc;
     }
     .quiz-options-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 12px;
+      gap: 10px;
     }
     @media (max-width: 600px) {
       .quiz-options-grid { grid-template-columns: 1fr; }
@@ -339,9 +339,9 @@
       background: rgba(255, 255, 255, 0.08);
       border: 1px solid rgba(56, 189, 248, 0.35);
       color: #e2e8f0;
-      padding: 12px 16px;
+      padding: 12px 14px;
       border-radius: 10px;
-      font-size: 15px;
+      font-size: 14px;
       cursor: pointer;
       text-align: left;
       transition: all 0.15s;
@@ -394,17 +394,6 @@
       color: #cbd5e1;
     }
     .start-rules b { color: #facc15; }
-    .asset-status-box {
-      max-width: 580px;
-      background: rgba(16, 185, 129, 0.1);
-      border: 1px solid rgba(16, 185, 129, 0.4);
-      border-radius: 10px;
-      padding: 8px 16px;
-      font-size: 12px;
-      color: #6ee7b7;
-      text-align: left;
-      line-height: 1.5;
-    }
     .btn-main {
       background: linear-gradient(135deg, #00f2fe, #4facfe);
       border: none;
@@ -451,7 +440,7 @@
     <div id="status-banner"></div>
     <div id="attack-banner">🎯 命中附近 5 名玩家！他们已被强制答题！</div>
 
-    <!-- 底部操作按键（完全还原手写图） -->
+    <!-- 底部操作按键 -->
     <div id="controls-layout">
       <div class="left-controls">
         <div class="dir-column">
@@ -470,7 +459,7 @@
       </div>
     </div>
 
-    <!-- 限时答题弹窗 -->
+    <!-- 答题弹窗 -->
     <div id="quiz-modal">
       <div class="quiz-box">
         <div class="timer-ring" id="quiz-timer">⏱️ 倒计时: 10s</div>
@@ -485,16 +474,13 @@
       <h1 class="start-title">🌊 Ocean Adventure: 海底冒险原型</h1>
       <div class="start-rules">
         <b>手绘设计规则：</b><br>
-        1. <b>游 10m 需补充一次 energy</b>：每 10 米散落光芒能量球，不补充将耗尽体力。<br>
+        1. <b>游 10m 需补充一次 energy</b>：每 10 米散落光芒能量球，不捡能量将快速见底。<br>
         2. <b>撞到塑料袋强制限时答题（10秒）</b>：<br>
         &nbsp;&nbsp;&nbsp;&nbsp;• 答对：<b>开启金身（金色无敌护盾）+ 极速加速（持续 5 秒）</b>！<br>
         &nbsp;&nbsp;&nbsp;&nbsp;• 答错/超时：<b>Penalty 原地定身 3 秒不能动</b>！<br>
         3. <b>贝壳 🐚 与 大便 💩 道具</b>：按<b>【丢】</b>发射攻击附近 5 名玩家，强制其答题！<br>
         4. <b>海龟 🐢 是硬性障碍物</b>：具有实体阻挡体积，必须上下绕道（金身可直接冲破）！<br>
         5. <b>每 150m 决战大 Boss</b>：连续答对 3 题打倒大 Boss 获取巨额加分！
-      </div>
-      <div class="asset-status-box" id="asset-info-banner">
-        🖼️ <b>素材替换引擎已就绪</b>：在 GitHub 仓库中创建 <code>assets/</code> 文件夹并放入同名图片（如 <code>diver.png</code>、<code>turtle.png</code>、<code>plastic_bag.png</code>、<code>shell.png</code>、<code>poop.png</code>、<code>boss.png</code>），游戏将自动无缝切换为你的自定义美术图片！
       </div>
       <button class="btn-main" id="btn-start">开始探索</button>
     </div>
@@ -509,112 +495,89 @@
 
   <script>
     /* ==========================================================================
-       1. 智能素材加载器 (SMART ASSET MANAGER)
+       1. 鲁棒素材加载器 (ROBUST MULTI-PATH ASSET MANAGER)
        --------------------------------------------------------------------------
-       支持零配置！只要你在仓库 assets/ 放入对应图片，就会自动加载并替换矢量绘制；
-       若没有图片或加载失败，则无缝平滑回退到 Canvas 绘制，绝不报错或黑屏！
+       自动探测相对路径 assets/ 以及根目录 ./，彻底解决 GitHub Pages 部署路径 404
        ========================================================================== */
-    class SmartAssetManager {
+    class RobustAssetManager {
       constructor() {
-        this.registry = {
-          diver: { src: "assets/diver.png", img: null, loaded: false },
-          turtle: { src: "assets/turtle.png", img: null, loaded: false },
-          plasticBag: { src: "assets/plastic_bag.png", img: null, loaded: false },
-          shell: { src: "assets/shell.png", img: null, loaded: false },
-          poop: { src: "assets/poop.png", img: null, loaded: false },
-          energyOrb: { src: "assets/energy.png", img: null, loaded: false },
-          boss: { src: "assets/boss.png", img: null, loaded: false },
-          bg: { src: "assets/bg.png", img: null, loaded: false }
+        this.manifest = {
+          diver: ["assets/diver.png", "diver.png"],
+          turtle: ["assets/turtle.png", "turtle.png"],
+          plasticBag: ["assets/plastic_bag.png", "plastic_bag.png"],
+          shell: ["assets/shell.png", "shell.png"],
+          poop: ["assets/poop.png", "poop.png"],
+          energyOrb: ["assets/energy.png", "energy.png"],
+          boss: ["assets/boss.png", "boss.png"],
+          bg: ["assets/bg.png", "bg.png"]
         };
+        this.images = {};
         this.loadAll();
       }
       loadAll() {
-        Object.keys(this.registry).forEach(key => {
-          const item = this.registry[key];
-          const img = new Image();
-          img.onload = () => {
-            item.img = img;
-            item.loaded = true;
-          };
-          img.onerror = () => {
-            item.loaded = false; // 优雅降级使用内置 Canvas 程序化渲染
-          };
-          img.src = item.src;
+        Object.keys(this.manifest).forEach(key => {
+          this.tryLoad(key, 0);
         });
       }
+      tryLoad(key, pathIndex) {
+        const paths = this.manifest[key];
+        if (pathIndex >= paths.length) {
+          // 全部路径尝试失败，平滑降级使用 Canvas 绘制
+          return;
+        }
+        const src = paths[pathIndex];
+        const img = new Image();
+        img.onload = () => {
+          this.images[key] = img;
+        };
+        img.onerror = () => {
+          this.tryLoad(key, pathIndex + 1);
+        };
+        img.src = src;
+      }
       has(key) {
-        return this.registry[key] && this.registry[key].loaded && this.registry[key].img;
+        return !!this.images[key];
       }
       get(key) {
-        return this.registry[key].img;
+        return this.images[key];
       }
     }
-    const assets = new SmartAssetManager();
+    const assets = new RobustAssetManager();
 
     /* ==========================================================================
-       2. 课堂题库配置 (QUESTION BANK)
+       2. 扩充后的丰富课堂题库 (20+ 题目，杜绝频繁重复)
        ========================================================================== */
     const QUESTION_BANK = [
-      {
-        q: "以下哪种动物属于海洋哺乳动物？",
-        options: ["大白鲨", "海豚", "蓝鳍金枪鱼", "海马"],
-        answer: 1,
-        isBoss: false
-      },
-      {
-        q: "塑料垃圾在深海中分解通常需要多少年？",
-        options: ["1-2年", "10年", "100至500年以上", "半年内"],
-        answer: 2,
-        isBoss: false
-      },
-      {
-        q: "海龟在海洋生态中扮演的重要角色之一是控制什么生物的数量？",
-        options: ["水母", "大白鲨", "海星", "鲸鱼"],
-        answer: 0,
-        isBoss: false
-      },
-      {
-        q: "珊瑚礁虽然占海洋面积不到0.1%，却养育了多少比例的海洋生物？",
-        options: ["约5%", "约25%", "约50%", "不足1%"],
-        answer: 1,
-        isBoss: false
-      },
-      {
-        q: "【Boss 弱点试题 1】地球表面约有多少比例被海洋所覆盖？",
-        options: ["约50%", "约60%", "约71%", "约85%"],
-        answer: 2,
-        isBoss: true
-      },
-      {
-        q: "【Boss 弱点试题 2】马里亚纳海沟的最深处大约是多少米？",
-        options: ["约3000米", "约6000米", "约11000米", "约20000米"],
-        answer: 2,
-        isBoss: true
-      },
-      {
-        q: "【Boss 弱点试题 3】海洋中的浮游植物光合作用产生的氧气约占地球大气的多少？",
-        options: ["约10%", "约25%", "约50%以上", "不足5%"],
-        answer: 2,
-        isBoss: true
-      }
+      { q: "以下哪种动物属于真正的海洋哺乳动物？", options: ["大白鲨", "海豚", "蓝鳍金枪鱼", "海马"], answer: 1, isBoss: false },
+      { q: "塑料垃圾在深海环境中自然分解通常需要多久？", options: ["1-2年", "10年左右", "100至500年以上", "几个月即可"], answer: 2, isBoss: false },
+      { q: "海龟在海洋生态中扮演的重要角色之一是控制什么生物的数量？", options: ["水母", "大白鲨", "海星", "鲸鱼"], answer: 0, isBoss: false },
+      { q: "被称为“海洋热带雨林”的极其脆弱的海洋生态系统是？", options: ["深海海沟", "红树林", "珊瑚礁", "海草床"], answer: 2, isBoss: false },
+      { q: "地球上海洋的最大深度（挑战者深渊）约为多少米？", options: ["约3000米", "约6000米", "约11000米", "约20000米"], answer: 2, isBoss: false },
+      { q: "海洋中体型最大的现存动物是什么？", options: ["大王乌贼", "蓝鲸", "抹香鲸", "巨齿鲨"], answer: 1, isBoss: false },
+      { q: "大部分海洋生物生活在海洋的哪个水层？", options: ["阳光层（0-200米）", "黄昏层（200-1000米）", "午夜层（1000米以上）", "超深渊层"], answer: 0, isBoss: false },
+      { q: "海水呈现蔚蓝色的主要物理原因是什么？", options: ["海水反射天空颜色", "水分子吸收红光散射蓝光", "水中含有铜离子", "海藻的分泌物"], answer: 1, isBoss: false },
+      { q: "海獭为了防止睡觉时被洋流冲走，会采取什么聪明的行为？", options: ["将自己绑在海带丛中", "咬住同伴的尾巴", "潜入沙底睡觉", "停止呼吸"], answer: 0, isBoss: false },
+      { q: "海洋酸化（Ocean Acidification）主要是由于海水吸收了过量的什么气体？", options: ["二氧化碳 (CO₂)", "二氧化硫", "一氧化碳", "甲烷"], answer: 0, isBoss: false },
+      // Boss 试题池
+      { q: "【Boss 试题】地球表面约有多少比例被海洋所覆盖？", options: ["约50%", "约60%", "约71%", "约85%"], answer: 2, isBoss: true },
+      { q: "【Boss 试题】海洋植物和浮游生物产生的光合氧气约占地球大气氧气的多少？", options: ["约10%", "约25%", "约50%以上", "不足5%"], answer: 2, isBoss: true },
+      { q: "【Boss 试题】深海热液喷口（黑烟囱）生态系统的能量最初来自？", options: ["太阳光能", "化能合成作用", "月球潮汐引力", "洋流冲击力"], answer: 1, isBoss: true },
+      { q: "【Boss 试题】大王乌贼的大脑结构非常特殊，它的食道从大脑的什么位置穿过？", options: ["大脑正中心", "大脑后方", "脑干下方", "不穿过大脑"], answer: 0, isBoss: true },
+      { q: "【Boss 试题】海洋环流系统中，厄尔尼诺（El Niño）现象主要发生在哪个大洋？", options: ["印度洋", "大西洋", "太平洋", "北冰洋"], answer: 2, isBoss: true }
     ];
 
     /* ==========================================================================
-       3. 稳定可靠的 Web Audio 音效系统 (自动唤醒防卡死)
+       3. 简易合成音效系统 (自动唤醒防护)
        ========================================================================== */
     class SoundFX {
-      constructor() {
-        this.ctx = null;
-      }
+      constructor() { this.ctx = null; }
       init() {
         try {
           if (!this.ctx) {
             const AC = window.AudioContext || window.webkitAudioContext;
             if (AC) this.ctx = new AC();
           }
-          if (this.ctx && this.ctx.state === "suspended") {
-            this.ctx.resume();
-          }
+          if (this.ctx && this.ctx.state === "suspended") this.ctx.resume();
         } catch(e) {}
       }
       playTone(freq, dur, type = "sine", gainVal = 0.12) {
@@ -634,14 +597,12 @@
       }
       pickup() {
         this.init();
-        this.playTone(523.25, 0.1, "triangle", 0.15);
-        setTimeout(() => this.playTone(659.25, 0.15, "triangle", 0.15), 60);
+        this.playTone(523, 0.1, "triangle", 0.15);
+        setTimeout(() => this.playTone(659, 0.15, "triangle", 0.15), 60);
       }
       goldenPower() {
         this.init();
-        [523, 659, 784, 1046].forEach((f, i) => {
-          setTimeout(() => this.playTone(f, 0.22, "sine", 0.2), i * 90);
-        });
+        [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => this.playTone(f, 0.22, "sine", 0.2), i * 90));
       }
       stunBuzzer() {
         this.init();
@@ -659,7 +620,7 @@
       }
       bumpTurtle() {
         this.init();
-        this.playTone(80, 0.15, "sine", 0.3);
+        this.playTone(85, 0.15, "sine", 0.3);
       }
       bossAlert() {
         this.init();
@@ -672,12 +633,11 @@
     window.addEventListener("touchstart", () => sfx.init(), { once: true });
 
     /* ==========================================================================
-       4. 画布与基础数据初始化
+       4. 游戏数据与变量设定
        ========================================================================== */
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
-    // UI 句柄
     const distEl = document.getElementById("dist-val");
     const energyBarEl = document.getElementById("energy-bar-fill");
     const energyValEl = document.getElementById("energy-val");
@@ -695,7 +655,6 @@
     const gameOverScreenEl = document.getElementById("game-over-screen");
     const finalDistEl = document.getElementById("final-dist");
 
-    // 游戏核心状态机
     const S_MENU = 0, S_PLAYING = 1, S_QUIZ = 2, S_BOSS_BATTLE = 3, S_OVER = 4;
     let gameState = S_MENU;
 
@@ -705,27 +664,23 @@
     let baseSpeed = 3.6;
     let currentSpeed = 3.6;
 
-    // 金身与眩晕定时器 (60帧/秒)
     let goldenBodyTimer = 0; // 5秒 = 300帧
     let stunnedTimer = 0;    // 3秒 = 180帧
-    let turtleBumpCooldown = 0; // 碰撞海龟防连击冷却
+    let turtleBumpCooldown = 0;
 
-    // 道具槽
     let currentItem = null; // null, "SHELL", "POOP"
 
-    // 150m Boss 战专属状态
     let bossActive = false;
     let bossHp = 3;
     let bossTargetDist = 150;
-    let bossX = 960 + 120;
+    let bossX = 740;
     let bossY = 270;
     let bossAnimAngle = 0;
+    let bossFlashTimer = 0;
 
-    // 潜水员主角
     const player = {
       x: 130,
       y: 270,
-      targetY: 270,
       vy: 0,
       width: 60,
       height: 34,
@@ -733,7 +688,6 @@
       bubbleTimer: 0
     };
 
-    // 同场的 5 名竞争玩家（带自动回界逻辑）
     const DEFAULT_PLAYERS = [
       { id: 1, name: "P1_海龟仔", initX: 280, x: 280, y: 120, targetY: 120, color: "#f97316", state: "normal", stateTimer: 0 },
       { id: 2, name: "P2_蓝旗鱼", initX: 410, x: 410, y: 200, targetY: 200, color: "#a855f7", state: "normal", stateTimer: 0 },
@@ -743,7 +697,6 @@
     ];
     let otherPlayers = JSON.parse(JSON.stringify(DEFAULT_PLAYERS));
 
-    // 实体集合
     let energyOrbs = [];
     let plasticBags = [];
     let attackItems = [];
@@ -763,8 +716,9 @@
       });
     }
 
-    // 输入监听
+    // 【修复 Bug 1】：彻底防止按键卡死（加入 mouseleave, touchcancel, window.touchend 全局兜底）
     const keys = { up: false, down: false, dash: false };
+
     window.addEventListener("keydown", (e) => {
       if (e.code === "ArrowUp" || e.code === "KeyW") keys.up = true;
       if (e.code === "ArrowDown" || e.code === "KeyS") keys.down = true;
@@ -777,26 +731,41 @@
       if (e.code === "Space" || e.code === "ShiftLeft") keys.dash = false;
     });
 
-    const bindBtn = (id, keyName) => {
+    const bindControlBtn = (id, keyName) => {
       const el = document.getElementById(id);
-      const press = (e) => { e.preventDefault(); sfx.init(); keys[keyName] = true; };
-      const release = (e) => { e.preventDefault(); keys[keyName] = false; };
+      const press = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        sfx.init();
+        keys[keyName] = true;
+        el.classList.add("active");
+      };
+      const release = (e) => {
+        e.preventDefault();
+        keys[keyName] = false;
+        el.classList.remove("active");
+      };
       el.addEventListener("mousedown", press);
       el.addEventListener("mouseup", release);
+      el.addEventListener("mouseleave", release);
       el.addEventListener("touchstart", press, { passive: false });
       el.addEventListener("touchend", release, { passive: false });
+      el.addEventListener("touchcancel", release, { passive: false });
     };
-    bindBtn("btn-up", "up");
-    bindBtn("btn-down", "down");
-    bindBtn("btn-dash", "dash");
+
+    bindControlBtn("btn-up", "up");
+    bindControlBtn("btn-down", "down");
+    bindControlBtn("btn-dash", "dash");
+
+    // 全局触摸抬起保护
+    window.addEventListener("touchend", () => {
+      keys.up = false;
+      keys.down = false;
+      keys.dash = false;
+      document.querySelectorAll(".btn-sketch-sq, .btn-dash").forEach(b => b.classList.remove("active"));
+    });
 
     btnThrowEl.onclick = () => { sfx.init(); throwItem(); };
-
-    canvas.addEventListener("mousemove", (e) => {
-      if (gameState !== S_PLAYING || stunnedTimer > 0) return;
-      const r = canvas.getBoundingClientRect();
-      player.targetY = (e.clientY - r.top) * (540 / r.height);
-    });
 
     /* ==========================================================================
        5. 道具与技能逻辑 (丢贝壳 🐚 / 丢大便 💩)
@@ -815,6 +784,7 @@
       }
     }
 
+    // 【修复 Bug 6】：投掷物实时追踪竞争对手当前动态坐标，绝不对着空气爆炸
     function throwItem() {
       if (!currentItem || gameState !== S_PLAYING || stunnedTimer > 0) return;
 
@@ -824,14 +794,13 @@
       if (type === "SHELL") sfx.throwShell();
       else sfx.throwPoop();
 
-      // 对 5 名竞争玩家同时发射投掷物
       otherPlayers.forEach((target, i) => {
         projectiles.push({
+          startX: player.x,
+          startY: player.y,
+          targetRef: target,
           x: player.x,
           y: player.y,
-          tx: target.x,
-          ty: target.y,
-          targetId: target.id,
           type: type,
           progress: 0,
           speed: 0.05 + (i * 0.006)
@@ -842,11 +811,11 @@
       attackBannerEl.textContent = (type === "SHELL")
         ? "🐚 掷出飞旋贝壳！附近的 5 名玩家已被强制答题！"
         : "💩 扔出臭气大便！附近的 5 名玩家受到熏陶强制答题！";
-      setTimeout(() => attackBannerEl.style.display = "none", 2600);
+      setTimeout(() => attackBannerEl.style.display = "none", 2500);
     }
 
     /* ==========================================================================
-       6. 限时答题与 Boss 战控制 (防堆叠、防卡死、防持续耗能)
+       6. 答题与 Boss 战控制系统 (修复视野遮挡、定身卡死与无打击感问题)
        ========================================================================== */
     let quizInterval = null;
     let quizTimeLeft = 10;
@@ -854,7 +823,6 @@
     let isBossTrial = false;
 
     function triggerQuiz(isBoss = false) {
-      // 切换状态，自动暂停普通场景游动与耗能
       gameState = isBoss ? S_BOSS_BATTLE : S_QUIZ;
       isBossTrial = isBoss;
 
@@ -862,7 +830,7 @@
       if (pool.length === 0) pool = QUESTION_BANK;
       activeQuizObj = pool[Math.floor(Math.random() * pool.length)];
 
-      quizBadgeEl.textContent = isBoss ? `⚔️ Boss 弱点试题 [ 需再击破: ${bossHp}/3 ]` : "🚨 撞到塑料袋！强制限时答题";
+      quizBadgeEl.textContent = isBoss ? `⚔️ Boss 弱点试题 [ 需击破: ${bossHp}/3 ]` : "🚨 撞到塑料袋！强制限时答题";
       quizBadgeEl.style.color = isBoss ? "#f87171" : "#38bdf8";
 
       quizQEl.textContent = activeQuizObj.q;
@@ -876,7 +844,6 @@
         quizOptsEl.appendChild(btn);
       });
 
-      // 10秒倒计时
       quizTimeLeft = 10;
       quizTimerEl.textContent = `⏱️ 倒计时: ${quizTimeLeft}s`;
       clearInterval(quizInterval);
@@ -892,6 +859,7 @@
       quizModalEl.style.display = "flex";
     }
 
+    // 【修复 Bug 3 & 4】：Boss 战答题反馈、受击动画展现与定身解除保护
     function submitQuizAnswer(chosenIdx, btn) {
       clearInterval(quizInterval);
       const allBtns = quizOptsEl.querySelectorAll(".quiz-opt-btn");
@@ -903,43 +871,49 @@
         if (btn) btn.classList.add("correct");
         sfx.goldenPower();
 
+        if (isBossTrial) {
+          bossHp--;
+          score += 200;
+          bossFlashTimer = 35; // Boss 受击闪白光红光
+
+          // 生成猛烈鱼雷光束射向 Boss
+          for (let i = 0; i < 30; i++) {
+            particles.push({
+              x: player.x + 20, y: player.y,
+              vx: 12 + Math.random() * 8, vy: (Math.random() - 0.5) * 6,
+              life: 1.0, decay: 0.03, color: "#facc15", r: 5
+            });
+          }
+        }
+
         setTimeout(() => {
           quizModalEl.style.display = "none";
 
           if (isBossTrial) {
-            bossHp--;
-            score += 200;
-            // 攻击 Boss 的光束特效
-            for (let i = 0; i < 25; i++) {
-              particles.push({
-                x: player.x, y: player.y,
-                vx: Math.cos(i) * 14, vy: Math.sin(i) * 5,
-                life: 1.0, decay: 0.03, color: "#facc15", r: 5
-              });
-            }
-
             if (bossHp <= 0) {
               // 彻底击败 Boss！
               bossActive = false;
               score += 800;
               bossTargetDist += 150;
               goldenBodyTimer = 300; // 奖励 5 秒金身极速！
+              stunnedTimer = 0;
               gameState = S_PLAYING;
             } else {
-              triggerQuiz(true); // 继续回答下一道 Boss 题
+              // 稍作停顿，给玩家欣赏打击动画，再出下一道 Boss 题
+              setTimeout(() => triggerQuiz(true), 400);
             }
           } else {
-            // 【核心规则】：答对开启金身加速，精准持续 5 秒
-            goldenBodyTimer = 300; // 5秒
+            // 普通答题答对：开启金身 5 秒
+            goldenBodyTimer = 300; // 精准 5 秒
             stunnedTimer = 0;
-            energy = Math.min(100, energy + 30);
+            energy = Math.min(100, energy + 45); // 大幅回能
             score += 80;
             gameState = S_PLAYING;
           }
         }, 700);
 
       } else {
-        // 答错或超时
+        // 答错
         if (btn) btn.classList.add("wrong");
         if (allBtns[activeQuizObj.answer]) allBtns[activeQuizObj.answer].classList.add("correct");
         sfx.stunBuzzer();
@@ -948,12 +922,11 @@
           quizModalEl.style.display = "none";
 
           if (isBossTrial) {
-            // Boss 战答错惩罚：扣除能量并重新出题
+            // Boss 战答错：扣除能量，重新出题，不叠加永久定身
             energy = Math.max(0, energy - 15);
-            stunnedTimer = 120; // 冻结2秒
-            triggerQuiz(true);
+            setTimeout(() => triggerQuiz(true), 400);
           } else {
-            // 【核心规则】：答错 penalty 3 秒不能动！
+            // 普通答题答错：Penalty 原地定身 3 秒
             stunnedTimer = 180; // 3秒
             goldenBodyTimer = 0;
             energy = Math.max(0, energy - 15);
@@ -963,12 +936,12 @@
           if (energy <= 0) {
             endGame("能量耗尽", "深海潜行失去体力，请注意收集能量球与答对脱困！");
           }
-        }, 1200);
+        }, 1100);
       }
     }
 
     /* ==========================================================================
-       7. 游戏逻辑主循环 (Update & Reset)
+       7. 游戏逻辑更新循环 (Update & Reset)
        ========================================================================== */
     let lastEnergyDist = 0;
     let lastPlasticDist = 0;
@@ -986,10 +959,10 @@
       bossActive = false;
       bossHp = 3;
       bossTargetDist = 150;
-      bossX = 960 + 120;
+      bossX = 740;
+      bossFlashTimer = 0;
 
       player.y = 270;
-      player.targetY = 270;
       player.vy = 0;
 
       otherPlayers = JSON.parse(JSON.stringify(DEFAULT_PLAYERS));
@@ -1017,30 +990,29 @@
     }
 
     function update() {
-      // 答题中或菜单中暂停场景推进，防止后台扣能死亡
+      // 答题期间暂停场景推进与能量衰减
       if (gameState !== S_PLAYING) {
         if (gameState === S_BOSS_BATTLE && bossActive) {
-          // Boss 动画照常播放
           bossAnimAngle += 0.04;
-          if (bossX > 740) bossX -= 2.0;
+          if (bossFlashTimer > 0) bossFlashTimer--;
         }
         return;
       }
 
-      // 1. 金身与眩晕定时器推进
+      // 1. 金身与定身
       const isGolden = (goldenBodyTimer > 0);
       const isStunned = (stunnedTimer > 0);
 
       if (isGolden) {
         goldenBodyTimer--;
-        currentSpeed = baseSpeed * 2.2; // 极速
+        currentSpeed = baseSpeed * 2.2;
         statusBannerEl.className = "status-golden";
-        statusBannerEl.textContent = `✨ 金身护盾 & 极速加速中: ${(goldenBodyTimer / 60).toFixed(1)}s`;
+        statusBannerEl.textContent = `✨ 金身护盾 & 极速冲刺: ${(goldenBodyTimer / 60).toFixed(1)}s`;
       } else if (isStunned) {
         stunnedTimer--;
-        currentSpeed = 0; // 原地定身！
+        currentSpeed = 0;
         statusBannerEl.className = "status-stunned";
-        statusBannerEl.textContent = `⛔ 答错惩罚！定身冻结中: ${(stunnedTimer / 60).toFixed(1)}s`;
+        statusBannerEl.textContent = `⛔ 答错惩罚！定身冻结: ${(stunnedTimer / 60).toFixed(1)}s`;
       } else {
         statusBannerEl.style.display = "none";
         const isDashing = keys.dash && energy > 10;
@@ -1049,33 +1021,34 @@
 
       if (turtleBumpCooldown > 0) turtleBumpCooldown--;
 
-      // 2. 能量消耗（仅在正常游动时扣除）
+      // 【修复 Bug 8】：能量耗损节奏严格对标“游 10m 需补充一次 energy”
       if (!isStunned) {
-        const drain = isGolden ? 0.01 : (keys.dash ? 0.05 : 0.02);
+        // 游 10 米大约需要 100 帧左右，每帧扣除 0.35% ~ 0.5%，确保不吃能量球在 12-14 米内必定见底
+        const drain = isGolden ? 0.08 : (keys.dash ? 0.45 : 0.28);
         energy -= drain;
         if (energy <= 0) {
           energy = 0;
-          endGame("能量耗尽", "深海游泳体力耗尽！每 10 米记得补充能量球。");
+          endGame("能量耗尽", "深海潜行失去体力！手绘规则：每 10 米务必补充发光能量球。");
           return;
         }
         distance += (currentSpeed * 0.025);
         score += isGolden ? 3 : 1;
       }
 
-      // 3. 潜水员位移
+      // 潜水员纯按键控制（移除了与按键冲突的鼠标自动牵引逻辑）
       if (!isStunned) {
-        if (keys.up) player.vy -= 0.65;
-        if (keys.down) player.vy += 0.65;
-        if (!keys.up && !keys.down) {
-          player.vy += (player.targetY - player.y) * 0.05;
-        }
-        player.vy *= 0.86;
+        if (keys.up) player.vy -= 0.75;
+        if (keys.down) player.vy += 0.75;
+        player.vy *= 0.84;
         player.y += player.vy;
-        player.y = Math.max(50, Math.min(490, player.y));
-        player.legWiggle += 0.18 + (currentSpeed * 0.04);
+      }
+      // 【修复 Bug 5】：随时保证在屏幕有效安全范围内
+      player.y = Math.max(50, Math.min(485, player.y));
+      player.legWiggle += 0.18 + (currentSpeed * 0.04);
 
+      if (!isStunned) {
         player.bubbleTimer++;
-        if (player.bubbleTimer % 18 === 0) {
+        if (player.bubbleTimer % 16 === 0) {
           particles.push({
             x: player.x + 10, y: player.y - 12,
             vx: -currentSpeed * 0.5, vy: -1.5,
@@ -1084,12 +1057,13 @@
         }
       }
 
-      // 4. 背景气泡与竞争玩家位置自适应
+      // 背景微粒
       bgBubbles.forEach(b => {
         b.x -= b.spd * (currentSpeed + 1);
         if (b.x < -10) { b.x = 970; b.y = Math.random() * 540; }
       });
 
+      // 5 名其他竞争玩家 AI 游弋
       otherPlayers.forEach(p => {
         p.targetY += (Math.random() - 0.5) * 3;
         p.targetY = Math.max(70, Math.min(470, p.targetY));
@@ -1097,10 +1071,9 @@
 
         if (p.state === "quiz") {
           p.stateTimer--;
-          p.x -= currentSpeed * 0.6; // 落后
+          p.x -= currentSpeed * 0.6;
           if (p.stateTimer <= 0) p.state = "normal";
         } else {
-          // 平滑回归标准巡航位置，防止飞出屏幕
           p.x += (p.initX - p.x) * 0.02 + (Math.random() - 0.5) * 0.6;
         }
       });
@@ -1113,7 +1086,7 @@
         energyOrbs.push({
           x: 980,
           y: Math.random() * 420 + 60,
-          r: 15,
+          r: 16,
           phase: Math.random() * Math.PI
         });
       }
@@ -1162,18 +1135,18 @@
       if (distance >= bossTargetDist && !bossActive) {
         bossActive = true;
         bossHp = 3;
-        bossX = 960 + 80;
+        bossX = 740;
         sfx.bossAlert();
         triggerQuiz(true);
       }
 
-      // 交互检测：能量球
+      // 拾取能量球
       for (let i = energyOrbs.length - 1; i >= 0; i--) {
         const o = energyOrbs[i];
         o.x -= currentSpeed;
         o.phase += 0.08;
         if (Math.hypot(player.x - o.x, player.y - o.y) < player.width/2 + o.r) {
-          energy = Math.min(100, energy + 20);
+          energy = Math.min(100, energy + 45); // 补充一次可支撑下一个 10m
           score += 30;
           sfx.pickup();
           createBurst(o.x, o.y, "#38bdf8");
@@ -1183,11 +1156,11 @@
         if (o.x < -30) energyOrbs.splice(i, 1);
       }
 
-      // 交互检测：捡贝壳/大便
+      // 拾取贝壳/大便
       for (let i = attackItems.length - 1; i >= 0; i--) {
         const it = attackItems[i];
         it.x -= currentSpeed;
-        if (Math.hypot(player.x - it.x, player.y - it.y) < 32) {
+        if (Math.hypot(player.x - it.x, player.y - it.y) < 34) {
           setSlotItem(it.type);
           sfx.pickup();
           createBurst(it.x, it.y, it.type === "SHELL" ? "#f59e0b" : "#a16207");
@@ -1197,7 +1170,7 @@
         if (it.x < -30) attackItems.splice(i, 1);
       }
 
-      // 交互检测：塑料袋
+      // 碰撞塑料袋
       for (let i = plasticBags.length - 1; i >= 0; i--) {
         const pb = plasticBags[i];
         pb.x -= currentSpeed * 1.05;
@@ -1211,7 +1184,7 @@
         if (pb.x < -40) plasticBags.splice(i, 1);
       }
 
-      // 交互检测：海龟（硬碰撞防重叠与无缝弹开）
+      // 碰撞海龟（硬性障碍物）
       for (let i = turtles.length - 1; i >= 0; i--) {
         const t = turtles[i];
         t.x -= (currentSpeed + 0.7);
@@ -1220,20 +1193,18 @@
         const dx = Math.abs(player.x - t.x);
         const dy = Math.abs(player.y - t.y);
 
-        if (dx < (player.width / 2 + t.w / 2 - 6) && dy < (player.height / 2 + t.h / 2 - 4)) {
+        if (dx < (player.width / 2 + t.w / 2 - 8) && dy < (player.height / 2 + t.h / 2 - 4)) {
           if (isGolden) {
             createBurst(t.x, t.y, "#facc15");
             turtles.splice(i, 1);
             continue;
           } else {
-            // 硬性阻挡！
             if (turtleBumpCooldown === 0) {
               sfx.bumpTurtle();
-              turtleBumpCooldown = 20; // 冷却防刺耳噪音
+              turtleBumpCooldown = 20;
             }
-            // 物理平滑推离
-            if (player.y < t.y) player.y -= 4;
-            else player.y += 4;
+            if (player.y < t.y) player.y -= 5;
+            else player.y += 5;
             player.vy *= -0.4;
 
             particles.push({
@@ -1246,20 +1217,20 @@
         if (t.x < -80) turtles.splice(i, 1);
       }
 
-      // 投掷物飞向 5 名玩家
+      // 投掷物追踪对手当前真实坐标
       for (let i = projectiles.length - 1; i >= 0; i--) {
         const p = projectiles[i];
         p.progress += p.speed;
-        p.x = player.x + (p.tx - player.x) * p.progress;
-        p.y = player.y + (p.ty - player.y) * p.progress - Math.sin(p.progress * Math.PI) * 45;
+        const curTargetX = p.targetRef.x;
+        const curTargetY = p.targetRef.y;
+
+        p.x = p.startX + (curTargetX - p.startX) * p.progress;
+        p.y = p.startY + (curTargetY - p.startY) * p.progress - Math.sin(p.progress * Math.PI) * 45;
 
         if (p.progress >= 1.0) {
-          attackFX.push({ x: p.tx, y: p.ty, type: p.type, life: 1.0 });
-          const hitTarget = otherPlayers.find(op => op.id === p.targetId);
-          if (hitTarget) {
-            hitTarget.state = "quiz";
-            hitTarget.stateTimer = 180;
-          }
+          attackFX.push({ x: curTargetX, y: curTargetY, type: p.type, life: 1.0 });
+          p.targetRef.state = "quiz";
+          p.targetRef.stateTimer = 180;
           projectiles.splice(i, 1);
         }
       }
@@ -1304,12 +1275,12 @@
     }
 
     /* ==========================================================================
-       8. 增强渲染层 (支持图片资源与 Canvas 程序化双模切换)
+       8. 渲染引擎 (图片与 Canvas 双模)
        ========================================================================== */
     function render() {
       ctx.clearRect(0, 0, 960, 540);
 
-      // 背景渲染 (若有 bg.png 则直接贴图，无则渐变)
+      // 背景
       if (assets.has("bg")) {
         ctx.drawImage(assets.get("bg"), 0, 0, 960, 540);
       } else {
@@ -1399,7 +1370,7 @@
         ctx.restore();
       });
 
-      // 海龟（硬性障碍物）
+      // 海龟
       turtles.forEach(t => {
         drawTurtle(t.x, t.y, t.w, t.h, t.swimAngle);
       });
@@ -1409,7 +1380,7 @@
         drawBoss(bossX, bossY);
       }
 
-      // 5 名竞争玩家
+      // 5 名其他竞争玩家
       otherPlayers.forEach(op => {
         drawOtherPlayer(op);
       });
@@ -1459,7 +1430,6 @@
       });
     }
 
-    // 绘制海龟
     function drawTurtle(x, y, w, h, angle) {
       ctx.save();
       ctx.translate(x, y);
@@ -1502,16 +1472,17 @@
       ctx.restore();
     }
 
-    // 绘制 Boss
     function drawBoss(x, y) {
-      bossAnimAngle += 0.04;
       ctx.save();
       ctx.translate(x, y);
+
+      if (bossFlashTimer > 0) {
+        ctx.filter = "brightness(1.8) drop-shadow(0 0 15px #ef4444)";
+      }
 
       if (assets.has("boss")) {
         ctx.drawImage(assets.get("boss"), -90, -90, 180, 180);
       } else {
-        // 触手
         ctx.strokeStyle = "#831843";
         ctx.lineWidth = 12;
         ctx.lineCap = "round";
@@ -1523,13 +1494,11 @@
           ctx.stroke();
         }
 
-        // 巨兽本体
         ctx.fillStyle = "#9d174d";
         ctx.beginPath();
         ctx.ellipse(0, 0, 72, 66, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        // 凶恶巨眼
         ctx.fillStyle = "#fde047";
         ctx.beginPath();
         ctx.ellipse(-26, 0, 20, 24, 0, 0, Math.PI * 2);
@@ -1540,6 +1509,8 @@
         ctx.arc(-26, 0, 10, 0, Math.PI * 2);
         ctx.fill();
       }
+
+      ctx.filter = "none";
 
       // Boss 血条
       ctx.fillStyle = "rgba(0,0,0,0.6)";
@@ -1559,7 +1530,6 @@
       ctx.restore();
     }
 
-    // 绘制主角潜水员
     function drawDiver(x, y, legWiggle) {
       ctx.save();
       ctx.translate(x, y);
@@ -1567,7 +1537,6 @@
       const isGolden = goldenBodyTimer > 0;
       const isStunned = stunnedTimer > 0;
 
-      // 金身护盾特效
       if (isGolden) {
         ctx.shadowColor = "#facc15";
         ctx.shadowBlur = 35;
@@ -1616,7 +1585,6 @@
         ctx.stroke();
       }
 
-      // 定身眩晕星星
       if (isStunned) {
         ctx.font = "18px sans-serif";
         ctx.textAlign = "center";
@@ -1627,7 +1595,6 @@
       ctx.restore();
     }
 
-    // 绘制竞争玩家
     function drawOtherPlayer(op) {
       ctx.save();
       ctx.translate(op.x, op.y);
